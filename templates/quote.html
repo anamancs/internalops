@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Ride {{ ride.reservation_code }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h2 class="mb-1">Ride <code>{{ ride.reservation_code }}</code></h2>
+    <p class="text-muted mb-0">{{ ride.client_name }} · {{ ride.vehicle.name }}</p>
+  </div>
+  <span class="badge bg-secondary fs-6">{{ ride.status }}</span>
+</div>
+
+<div class="row g-4">
+  <!-- Left: details -->
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Reservation Details</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Pickup</dt>
+          <dd class="col-sm-8">{{ ride.pickup_datetime.strftime('%A, %b %d %Y at %H:%M') }}</dd>
+          <dt class="col-sm-4">Duration</dt>
+          <dd class="col-sm-8">{{ ride.duration_hours }} hours</dd>
+          <dt class="col-sm-4">Distance</dt>
+          <dd class="col-sm-8">{{ ride.distance_miles }} miles</dd>
+          <dt class="col-sm-4">Vehicle</dt>
+          <dd class="col-sm-8">{{ ride.vehicle.name }} ({{ ride.vehicle.vehicle_type }}, {{ ride.vehicle.capacity }} pax)</dd>
+          <dt class="col-sm-4">Driver rate</dt>
+          <dd class="col-sm-8">${{ "%.2f"|format(ride.driver_hourly_rate) }}/hr</dd>
+          <dt class="col-sm-4">Fuel price</dt>
+          <dd class="col-sm-8">${{ "%.2f"|format(ride.fuel_price_per_gal) }}/gal</dd>
+          {% if ride.notes %}
+          <dt class="col-sm-4">Notes</dt>
+          <dd class="col-sm-8">{{ ride.notes }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    {% if ride.status != 'completed' %}
+    <form method="POST" action="{{ url_for('complete_ride', ride_id=ride.id) }}">
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check2-circle"></i> Mark as Completed
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Right: Cost of Revenue -->
+  <div class="col-lg-6">
+    <div class="card border-danger">
+      <div class="card-header bg-danger text-white fw-semibold">
+        Cost of Revenue Breakdown
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr>
+            <td>
+              <strong>Driver labor</strong><br>
+              <small class="text-muted">{{ ride.duration_hours }}h × ${{ "%.2f"|format(ride.driver_hourly_rate) }}</small>
+            </td>
+            <td class="text-end align-middle">${{ "%.2f"|format(breakdown.driver) }}</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Fuel</strong><br>
+              <small class="text-muted">{{ ride.distance_miles }} mi ÷ {{ ride.vehicle.mpg }} mpg × ${{ "%.2f"|format(ride.fuel_price_per_gal) }}</small>
+            </td>
+            <td class="text-end align-middle">${{ "%.2f"|format(breakdown.fuel) }}</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Vehicle operating</strong><br>
+              <small class="text-muted">{{ ride.distance_miles }} mi × ${{ "%.2f"|format(ride.vehicle.cost_per_mile) }} (maint + dep)</small>
+            </td>
+            <td class="text-end align-middle">${{ "%.2f"|format(breakdown.vehicle_operating) }}</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Insurance allocation</strong><br>
+              <small class="text-muted">pro-rated daily ${{ "%.2f"|format(ride.vehicle.daily_insurance) }}</small>
+            </td>
+            <td class="text-end align-middle">${{ "%.2f"|format(breakdown.insurance) }}</td>
+          </tr>
+          <tr class="table-danger">
+            <td><strong class="fs-5">Total Cost of Revenue</strong></td>
+            <td class="text-end cost-total">${{ "%.2f"|format(breakdown.total) }}</td>
+          </tr>
+        </table>
+
+        <hr>
+        <div class="row text-center">
+          <div class="col-4">
+            <div class="text-muted small">Revenue</div>
+            <div class="fs-5 fw-bold text-primary">${{ "%.2f"|format(ride.revenue) }}</div>
+          </div>
+          <div class="col-4">
+            <div class="text-muted small">Cost of Revenue</div>
+            <div class="fs-5 fw-bold text-danger">${{ "%.2f"|format(breakdown.total) }}</div>
+          </div>
+          <div class="col-4">
+            <div class="text-muted small">Contribution Margin</div>
+            <div class="fs-5 fw-bold {% if ride.contribution_margin() >= 0 %}margin-pos{% else %}margin-neg{% endif %}">
+              ${{ "%.2f"|format(ride.contribution_margin()) }}
+              <div class="small">({{ ride.margin_pct() }}%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

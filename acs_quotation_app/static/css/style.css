@@ -1,0 +1,398 @@
+/* Anaman Concierge Services — RFQ Form Styles */
+
+:root {
+  --navy: #1a365d;
+  --navy-light: #2c5282;
+  --accent: #3182ce;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #2d3748;
+  --muted: #718096;
+  --success: #38a169;
+  --danger: #e53e3e;
+  --radius: 10px;
+  --shadow: 0 4px 16px rgba(26, 54, 93, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid var(--navy);
+}
+
+.brand h1 {
+  font-size: 1.5rem;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.brand p {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+/* Cards / Sections */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.section-header h2 {
+  font-size: 1.15rem;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.section-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* Form fields */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.field .req { color: var(--danger); }
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+}
+
+.field input.readonly {
+  background: #edf2f7;
+  color: var(--muted);
+  cursor: default;
+}
+
+.field small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Run cards */
+.run-card {
+  background: #f7fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.run-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.run-card-header h3 {
+  font-size: 0.95rem;
+  color: var(--navy);
+}
+
+.run-card .btn-remove {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.run-card .btn-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* Map containers */
+.map-box {
+  height: 180px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  margin-top: 6px;
+  margin-bottom: 8px;
+  z-index: 1;
+}
+
+.addr-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.addr-row input { flex: 1; }
+
+.btn-map {
+  padding: 9px 12px;
+  background: var(--navy-light);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-map:hover { background: var(--navy); }
+
+/* Buttons */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: #ebf8ff;
+  color: var(--accent);
+  border: 1.5px dashed var(--accent);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.btn-add:hover {
+  background: #bee3f8;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover { background: var(--navy-light); }
+
+.btn-outline {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1.5px solid var(--navy);
+  color: var(--navy);
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.btn-outline:hover {
+  background: var(--navy);
+  color: #fff;
+}
+
+.btn-sm {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 32px;
+}
+
+/* Pricing table */
+.table-wrap { overflow-x: auto; }
+
+.pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.pricing-table th {
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.pricing-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.pricing-table tbody tr:nth-child(even) { background: #f7fafc; }
+
+.pricing-table .empty-row td {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+}
+
+.pricing-table tfoot td {
+  background: #ebf8ff;
+  font-weight: 700;
+  color: var(--navy);
+  padding: 12px 8px;
+}
+
+.pricing-table .total-label { text-align: right; }
+.pricing-table .total-value { text-align: right; font-size: 1rem; }
+
+.pricing-table input.rate-input {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-align: right;
+}
+
+/* Flash messages */
+.flash {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.flash-error {
+  background: #fff5f5;
+  color: var(--danger);
+  border: 1px solid #feb2b2;
+}
+
+.flash-success {
+  background: #f0fff4;
+  color: var(--success);
+  border: 1px solid #9ae6b4;
+}
+
+
+/* Address autocomplete */
+.ac-wrap {
+  position: relative;
+  width: 100%;
+}
+.ac-list {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(26, 54, 93, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+.ac-list li {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f4f8;
+}
+.ac-list li:last-child { border-bottom: none; }
+.ac-list li:hover,
+.ac-list li.active {
+  background: #ebf8ff;
+  color: var(--navy);
+}

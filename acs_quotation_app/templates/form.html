@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFQ Quotation Form — Anaman Concierge Services</title>
+  <link rel="stylesheet" href="{{ url_for('quotation.static', filename='css/style.css') }}" />
+  <!-- Leaflet CSS for map/address selection -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+  
+  <!-- ✅ Premium ACS Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: #1a202c; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div class="container">
+          <div class="d-flex align-items-center gap-3">
+              <a href="/" class="btn btn-sm" style="border: 1px solid #4A7EBB; color: #4A7EBB;" title="Back to Portal" onmouseover="this.style.backgroundColor='#4A7EBB'; this.style.color='white'" onmouseout="this.style.backgroundColor='#4A7EBB'; this.style.color='white'">
+                  <i class="bi bi-arrow-left"></i> Portal
+              </a>
+              <span class="navbar-brand mb-0 h1 fw-bold">
+                  <i class="bi bi-receipt me-2"></i>ACS Quote Generator
+              </span>
+          </div>
+          
+          <div class="d-flex align-items-center">
+              <a href="{{ url_for('quotation.list_quotations') }}" class="btn btn-outline-light btn-sm me-3">Saved Quotes</a>
+              <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="40" onerror="this.style.display='none'">
+          </div>
+      </div>
+  </nav>
+
+  <div class="page">
+    <!-- Old header removed to prevent duplication -->
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form id="rfq-form" method="POST" action="{{ url_for('quotation.submit') }}">
+      <input type="hidden" name="runs_json" id="runs_json" value="[]" />
+
+      <!-- ==================== SECTION 1 ==================== -->
+      <section class="card">
+        <div class="section-header">
+          <span class="section-num">1</span>
+          <h2>Engagement Overview</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Provider</label>
+            <input type="text" value="Anaman Concierge Services" readonly class="readonly" />
+          </div>
+
+          <div class="field">
+            <label for="vehicle">Vehicle <span class="req">*</span></label>
+            <select id="vehicle" name="vehicle" required>
+              <option value="">— Select vehicle —</option>
+              <option value="Van">Van</option>
+              <option value="Motorcoach">Motorcoach</option>
+              <option value="Sedan">Sedan</option>
+              <option value="Full-size SUV">Full-size SUV</option>
+              <option value="SUV">SUV</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="event_start">Event Period — Start Date <span class="req">*</span></label>
+            <input type="date" id="event_start" name="event_start" required />
+          </div>
+          <div class="field">
+            <label for="event_end">Event Period — End Date</label>
+            <input type="date" id="event_end" name="event_end" />
+            <small>Leave blank if single-day event</small>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="location">Location <span class="req">*</span></label>
+          <input type="text" id="location" name="location" required
+                 placeholder="e.g. Iowa City, IA — Eastern Iowa Airport (CID) / Graduate Iowa City / Kinnick Stadium" />
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="total_runs">Total Runs</label>
+            <input type="text" id="total_runs" name="total_runs" placeholder="e.g. 8 Runs across 5 days" />
+            <small>Auto-updates from runs you add below, or enter manually</small>
+          </div>
+          <div class="field">
+            <label for="requirements">Requirements</label>
+            <input type="text" id="requirements" name="requirements"
+                   placeholder="e.g. Greeting/display sign required for all drivers on every run" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION 2 ==================== -->
+      <section class="card">
+        <div class="section-header">
+          <span class="section-num">2</span>
+          <h2>Service Schedule</h2>
+        </div>
+        <p class="section-note">
+          Add each run / loop as a separate card. Reservation numbers are auto-generated.
+          Use the map tools to pick pickup and drop-off addresses (Iowa preferred; other states supported).
+        </p>
+
+        <div id="runs-container">
+          <!-- Run cards injected by JS -->
+        </div>
+
+        <button type="button" id="btn-add-run" class="btn-add">+ Add Another Run</button>
+      </section>
+
+      <!-- ==================== SECTION 3 ==================== -->
+      <section class="card">
+        <div class="section-header">
+          <span class="section-num">3</span>
+          <h2>Pricing &amp; Quotation</h2>
+        </div>
+        <p class="section-note">
+          Best rate per run inclusive of driver, fuel, and standard tolls unless noted. All amounts in USD.
+        </p>
+
+        <div class="table-wrap">
+          <table class="pricing-table" id="pricing-table">
+            <thead>
+              <tr>
+                <th>Res. #</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Route</th>
+                <th>Quoted Rate (USD)</th>
+              </tr>
+            </thead>
+            <tbody id="pricing-body">
+              <tr class="empty-row"><td colspan="5">Add runs in Section 2 to enter pricing</td></tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="total-label">Total Quoted Amount (<span id="run-count">0</span> runs)</td>
+                <td class="total-value">$<span id="grand-total">0.00</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== SECTION 4 ==================== -->
+      <section class="card">
+        <div class="section-header">
+          <span class="section-num">4</span>
+          <h2>Terms &amp; Conditions</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="quote_valid_until">Quote Valid Until</label>
+            <input type="date" id="quote_valid_until" name="quote_valid_until" />
+            <small>Optional — leave blank to omit from PDF</small>
+          </div>
+          <div class="field">
+            <label for="overtime_rate">Overtime Rate ($ per hour beyond drop-off)</label>
+            <input type="number" id="overtime_rate" name="overtime_rate" step="0.01" min="0"
+                   placeholder="e.g. 150" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="payment_terms">Payment Terms</label>
+          <textarea id="payment_terms" name="payment_terms" rows="2"
+                    placeholder="e.g. 50% deposit on booking, balance due 7 days before first service"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="cancellation_policy">Cancellation Policy</label>
+          <textarea id="cancellation_policy" name="cancellation_policy" rows="2"
+                    placeholder="e.g. Full refund if cancellation confirmed by email 24 hours before scheduled pickup"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="additional_charges">Additional Charges</label>
+          <input type="text" id="additional_charges" name="additional_charges"
+                 placeholder="Tolls / Parking / Fuel Surcharge as incurred"
+                 value="Tolls / Parking / Fuel Surcharge as incurred" />
+        </div>
+
+        <div class="field">
+          <label>Insurance</label>
+          <input type="text" value="Certificate of Insurance to be provided upon request" readonly class="readonly" />
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="btn-submit">
+          Generate PDF Quotation &amp; Save
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Leaflet + Geocoder -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <script src="{{ url_for('quotation.static', filename='js/form.js') }}"></script>
+</body>
+</html>

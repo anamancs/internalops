@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Quotations — Anaman Concierge Services</title>
+  <link rel="stylesheet" href="{{ url_for('quotation.static', filename='css/style.css') }}" />
+  
+  <!-- ✅ Added Bootstrap CSS & Icons so the navbar renders -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+  
+  <!-- ✅ Premium ACS Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: #1a202c; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+      <div class="container">
+          <div class="d-flex align-items-center gap-3">
+              <a href="/" class="btn btn-outline-light btn-sm" title="Back to Portal">
+                  <i class="bi bi-arrow-left"></i> Portal
+              </a>
+              <span class="navbar-brand mb-0 h1 fw-bold">
+                  <i class="bi bi-receipt me-2"></i>ACS Quote Generator
+              </span>
+          </div>
+          
+          <div class="d-flex align-items-center">
+              <a href="{{ url_for('quotation.index') }}" class="btn btn-primary btn-sm me-3">+ New Quote</a>
+              <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="40" onerror="this.style.display='none'">
+          </div>
+      </div>
+  </nav>
+
+  <div class="page">
+    <!-- Old header removed to prevent duplication -->
+
+    <section class="card">
+      {% if quotations %}
+      <div class="table-wrap">
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Created</th>
+              <th>Vehicle</th>
+              <th>Event Period</th>
+              <th>Runs</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for q in quotations %}
+            <tr>
+              <td>{{ q.invoice_number }}</td>
+              <td>{{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else '—' }}</td>
+              <td>{{ q.vehicle or '—' }}</td>
+              <td>
+                {% if q.event_end and q.event_end != q.event_start %}
+                  {{ q.event_start }} – {{ q.event_end }}
+                {% else %}
+                  {{ q.event_start or '—' }}
+                {% endif %}
+              </td>
+              <td>{{ q.total_runs or (q.runs()|length) }}</td>
+              <td>${{ '%.2f'|format(q.total_quoted or 0) }}</td>
+              <td><a href="{{ url_for('quotation.download_pdf', qid=q.id) }}" class="btn-sm">PDF</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="section-note">No quotations saved yet.</p>
+      {% endif %}
+    </section>
+  </div>
+</body>
+</html>
