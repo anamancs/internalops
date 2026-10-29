@@ -5,40 +5,49 @@ from sqlalchemy import create_engine
 from flask import Blueprint, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 
-# Create the blueprint
 fleet_bp = Blueprint('fleet', __name__, url_prefix='/fleet')
 
-# --- CONFIG ---
-UPLOAD_FOLDER = 'uploads'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_FILE = os.path.join(BASE_DIR, 'fleet_data.db')
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-DB_FILE = 'fleet_data.db'
 engine = create_engine(f'sqlite:///{DB_FILE}')
 
 PRODUCT_COLUMN = 'New_Product_Category'
 AVG_SPEED_MPH = 35
-FUEL_PRICE_PER_GALLON = 3.15
-
+#FUEL_PRICE_PER_GALLON = 3.15
 HIDDEN_CATEGORIES = {"Bus", "Motor Coach", "Wheel chair", "UNITED"}
 
+HISTORICAL_FUEL_PRICES = {
+    2017: 2.40,
+    2018: 2.60,
+    2019: 2.50,
+    2020: 2.00,  # COVID dip
+    2021: 2.90,
+    2022: 3.80,  # Supply chain spike
+    2023: 3.40,
+    2024: 3.20,
+    2025: 3.25,
+    2026: 4.15,  # Updated to reflect current averages
+}
+DEFAULT_FUEL_PRICE = 3.15
+
 VEHICLE_FLEET = {
-    "Shuttle":     ["02-Chevrolet Suburban 2021", "03-Mercedes-Benz Sprinter Van 2021", "04-Ford Transit Van 2019", "09-GMC Terrain 2023"],
-    "Private Car": ["01-Lincoln Continental 2020", "02-Chevrolet Suburban 2021", "05-Chevrolet Suburban 2018", "09-GMC Terrain 2023"],
-    "Van":         ["03-Mercedes-Benz Sprinter Van 2021", "04-Ford Transit Van 2019"],
+    "Shuttle":     ["Chevrolet Suburban 2021", "Mercedes-Benz Sprinter Van 2021", "Ford Transit Van 2019", "GMC Terrain 2023"],
+    "Private Car": ["Lincoln Continental 2020", "Chevrolet Suburban 2021", "Chevrolet Suburban 2018", "GMC Terrain 2023"],
+    "Van":         ["Mercedes-Benz Sprinter Van 2021", "Ford Transit Van 2019"],
     "Limo":        ["Lincoln MKT Limo 2015"],
 }
 
 CATEGORY_DISPLAY_NAMES = {
-    "Limo":        "Limo Service",
-    "Private Car": "Private Car",
-    "Shuttle":     "Shuttles",
-    "Van":         "Van Service",
+    "Limo": "Limo Service", "Private Car": "Private Car Rides",
+    "Shuttle": "Airport Shuttle", "Van": "Van Service",
 }
 
 VEHICLE_MPG = {
-    "02-Chevrolet Suburban 2021": 18, "03-Mercedes-Benz Sprinter Van 2021": 18,
-    "04-Ford Transit Van 2019": 18, "09-GMC Terrain 2023": 26,
-    "01-Lincoln Continental 2020": 21, "05-Chevrolet Suburban 2018": 18,
+    "Chevrolet Suburban 2021": 18, "Mercedes-Benz Sprinter Van 2021": 18,
+    "Ford Transit Van 2019": 18, "GMC Terrain 2023": 26,
+    "Lincoln Continental 2020": 21, "Chevrolet Suburban 2018": 18,
     "Lincoln MKT Limo 2015": 16
 }
 
@@ -49,7 +58,6 @@ DRIVER_HOURLY_RATES = {
 CATEGORY_ALIASES = {
     "limoservice": "Limo", "vanservice": "Van", "privatecar": "Private Car", "shuttleservice": "Shuttle",
 }
-
 _CATEGORY_LOOKUP = {cat.strip().lower().replace(' ', ''): cat for cat in VEHICLE_FLEET.keys()}
 
 def normalize_category(raw_value):
@@ -65,18 +73,11 @@ GLOBAL_DF = pd.DataFrame()
 def init_db():
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS fleet_status (
-                vehicle TEXT PRIMARY KEY,
-                status TEXT
-            )
-        ''')
-        cursor.execute('SELECT COUNT(*) FROM fleet_status')
-        if cursor.fetchone()[0] == 0:
-            unique_vehicles = set()
-            for vehicles in VEHICLE_FLEET.values(): unique_vehicles.update(vehicles)
-            for v in unique_vehicles:
-                cursor.execute('INSERT INTO fleet_status (vehicle, status) VALUES (?, ?)', (v, 'Available'))
+        cursor.execute('''CREATE TABLE IF NOT EXISTS fleet_status (vehicle TEXT PRIMARY KEY, status TEXT)''')
+        unique_vehicles = set()
+        for vehicles in VEHICLE_FLEET.values(): unique_vehicles.update(vehicles)
+        for v in unique_vehicles:
+            cursor.execute('INSERT OR IGNORE INTO fleet_status (vehicle, status) VALUES (?, ?)', (v, 'Available'))
         conn.commit()
 
 def load_fleet_status():
@@ -88,42 +89,46 @@ def load_fleet_status():
 def load_rides_data():
     global GLOBAL_DF
     try:
-        df = pd.read_sql_query("SELECT * FROM rides", engine)
-        if not df.empty:
-            df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-            df['Cost'] = df.apply(calculate_ride_cost, axis=1)
-            GLOBAL_DF = df
+        GLOBAL_DF = pd.read_sql_query("SELECT * FROM rides", engine)
+        if not GLOBAL_DF.empty:
+            GLOBAL_DF['Date'] = pd.to_datetime(GLOBAL_DF['Date'], errors='coerce')
+            recalculate_costs() # Recalculate on startup
     except Exception:
         GLOBAL_DF = pd.DataFrame()
 
-def calculate_ride_cost(row):
-    hours = row.get('Number of Hours', 0)
-    raw_category = row.get(PRODUCT_COLUMN, row.get('New_Product_Category', ''))
-    category = normalize_category(raw_category)
-    if category is None: return 0.0
+# ✅ NEW: ULTRA-FAST VECTORIZED CALCULATION
+def recalculate_costs():
+    global GLOBAL_DF
+    if GLOBAL_DF.empty: return
 
-    miles = hours * AVG_SPEED_MPH
-    available_vehicles = [v for v in VEHICLE_FLEET.get(category, []) if fleet_status.get(v) == "Available"]
-    
-    fuel_cost = 0.0
-    if available_vehicles:
-        avg_mpg = sum(VEHICLE_MPG[v] for v in available_vehicles) / len(available_vehicles)
-        fuel_cost = (miles / avg_mpg) * FUEL_PRICE_PER_GALLON
+    product_col = PRODUCT_COLUMN if PRODUCT_COLUMN in GLOBAL_DF.columns else 'Product_Category'
+    GLOBAL_DF['normalized_cat'] = GLOBAL_DF[product_col].apply(normalize_category)
 
-        # If no vehicles are available, we can't fulfill the ride. Cost = 0.
-    if not available_vehicles:
-        return 0.0
+    cat_avg_mpg = {}
+    for category, vehicles in VEHICLE_FLEET.items():
+        available = [v for v in vehicles if fleet_status.get(v) == "Available"]
+        cat_avg_mpg[category] = sum(VEHICLE_MPG[v] for v in available) / len(available) if available else None
 
+    GLOBAL_DF['avg_mpg'] = GLOBAL_DF['normalized_cat'].map(cat_avg_mpg)
+    GLOBAL_DF['driver_rate'] = GLOBAL_DF['normalized_cat'].map(DRIVER_HOURLY_RATES).fillna(0)
+    GLOBAL_DF['fuel_price'] = GLOBAL_DF['Year'].map(HISTORICAL_FUEL_PRICES).fillna(DEFAULT_FUEL_PRICE)
 
-    driver_cost = hours * DRIVER_HOURLY_RATES.get(category, 0.0)
-    return fuel_cost + driver_cost
+    miles = GLOBAL_DF['Number of Hours'] * AVG_SPEED_MPH
+
+    # ✅ NEW: Calculate Fuel Cost separately
+    GLOBAL_DF['Fuel_Cost'] = (miles / GLOBAL_DF['avg_mpg']) * GLOBAL_DF['fuel_price']
+    GLOBAL_DF.loc[GLOBAL_DF['avg_mpg'].isna(), 'Fuel_Cost'] = 0.0
+    GLOBAL_DF['Fuel_Cost'] = GLOBAL_DF['Fuel_Cost'].fillna(0.0)
+
+    # Total Cost = Fuel + Driver Wages
+    GLOBAL_DF['Cost'] = GLOBAL_DF['Fuel_Cost'] + (GLOBAL_DF['Number of Hours'] * GLOBAL_DF['driver_rate'])
+    GLOBAL_DF['Cost'] = GLOBAL_DF['Cost'].fillna(0.0)
 
 def process_data(df):
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-    df['Year'] = df['Date'].dt.year
+    df['Year'] = df['Date'].dt.year # <--- Make sure this line is here
     df['Number of Hours'] = pd.to_numeric(df['Number of Hours'], errors='coerce').fillna(0)
     df['Miles'] = df['Number of Hours'] * AVG_SPEED_MPH
-    df['Cost'] = df.apply(calculate_ride_cost, axis=1)
     return df
 
 def get_filter_options():
@@ -133,14 +138,11 @@ def get_filter_options():
     month_order = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     present_months = GLOBAL_DF['Month'].dropna().unique().tolist()
     months = [m for m in month_order if m in present_months]
-
-    product_col = PRODUCT_COLUMN if PRODUCT_COLUMN in GLOBAL_DF.columns else 'New_Product_Category'
+    product_col = PRODUCT_COLUMN if PRODUCT_COLUMN in GLOBAL_DF.columns else 'Product_Category'
     raw_products = sorted(GLOBAL_DF[product_col].dropna().unique().tolist())
     raw_products = [p for p in raw_products if p not in HIDDEN_CATEGORIES]
     products = [{'value': p, 'label': CATEGORY_DISPLAY_NAMES.get(p, p)} for p in raw_products]
     return {'years': years, 'months': months, 'products': products}
-
-# --- ROUTES (Notice they are @fleet_bp.route now) ---
 
 @fleet_bp.route('/')
 def dashboard():
@@ -164,11 +166,13 @@ def upload_file():
     try:
         df = pd.read_csv(filepath) if filename.endswith('.csv') else pd.read_excel(filepath)
         df = process_data(df)
-        df.to_sql('rides', engine, if_exists='replace', index=False)
         GLOBAL_DF = df
+        recalculate_costs()
+        GLOBAL_DF.to_sql('rides', engine, if_exists='replace', index=False)
         return jsonify({'message': f'Dataset replaced. {len(df)} records loaded.', 'filters': get_filter_options()})
     except Exception as e:
         return jsonify({'error': f'Error: {str(e)}'}), 500
+
 
 @fleet_bp.route('/api/metrics')
 def get_metrics():
@@ -176,18 +180,25 @@ def get_metrics():
     if GLOBAL_DF.empty: return jsonify({'error': 'No data loaded'}), 400
 
     df = GLOBAL_DF.copy()
+    if 'Cancelled' in df.columns:
+        df = df[df['Cancelled'].astype(str).str.strip().str.lower() != 'cancelled']
+
     year, month, product = request.args.get('year'), request.args.get('month'), request.args.get('product')
 
     if year and year != 'All': df = df[df['Year'] == int(year)]
     if month and month != 'All': df = df[df['Month'] == month]
-    
-    product_col = PRODUCT_COLUMN if PRODUCT_COLUMN in df.columns else 'New_Product_Category'
+
+    product_col = PRODUCT_COLUMN if PRODUCT_COLUMN in df.columns else 'Product_Category'
     if product and product != 'All': df = df[df[product_col] == product]
+
+    # ✅ NEW: Calculate Average Fuel Cost
+    avg_fuel_cost = df['Fuel_Cost'].mean() if not df.empty else 0.0
 
     return jsonify({
         'total_miles': f"{df['Miles'].sum():,.0f} mi",
         'total_hours': f"{df['Number of Hours'].sum():,.0f}",
         'avg_cost': f"${df['Cost'].mean():,.2f}" if not df.empty else "$0.00",
+        'avg_fuel_cost': f"${avg_fuel_cost:,.2f}", # <--- Added here
         'run_count': len(df)
     })
 
@@ -212,13 +223,17 @@ def toggle_fleet():
         conn.execute('UPDATE fleet_status SET status = ? WHERE vehicle = ?', (new_status, vehicle))
         conn.commit()
 
+    # Recalculate instantly in memory (Vectorized)
     if not GLOBAL_DF.empty:
-        GLOBAL_DF['Cost'] = GLOBAL_DF.apply(calculate_ride_cost, axis=1)
-        GLOBAL_DF.to_sql('rides', engine, if_exists='replace', index=False)
+        recalculate_costs()
+
+    # ✅ FIX: Don't rewrite the whole DB on toggle.
+    # The DB only needs to be updated when a new file is uploaded.
+    # The UI calculates the new costs from memory instantly.
 
     return jsonify({'vehicle': vehicle, 'status': new_status})
 
-# Initialize the database when this file is imported
+# Initialize on import
 init_db()
 load_fleet_status()
 load_rides_data()

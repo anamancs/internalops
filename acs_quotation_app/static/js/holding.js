@@ -1,5 +1,5 @@
 /**
- * RFQ Form — dynamic runs, Leaflet maps, pricing sync
+ * RFQ Form — dynamic runs, Leaflet maps, address autocomplete, pricing sync
  */
 
 (function () {
@@ -19,7 +19,8 @@
 
   async function fetchReservationNumber() {
     try {
-      const res = await fetch("/api/reservation-number");
+      // ✅ FIXED: Added /quotation prefix
+      const res = await fetch("/quotation/api/reservation-number");
       const data = await res.json();
       return data.reservation_number;
     } catch {
@@ -34,6 +35,97 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  // ---------- ORS address autocomplete ----------
+
+  function attachAutocomplete(input) {
+    if (input.dataset.acAttached) return;
+    input.dataset.acAttached = "1";
+
+    const wrap = document.createElement("div");
+    wrap.className = "ac-wrap";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+
+    const list = document.createElement("ul");
+    list.className = "ac-list";
+    list.hidden = true;
+    wrap.appendChild(list);
+
+    let timer = null;
+    let activeIdx = -1;
+
+    function hide() {
+      list.hidden = true;
+      list.innerHTML = "";
+      activeIdx = -1;
+    }
+
+    function showSuggestions(features) {
+      list.innerHTML = "";
+      activeIdx = -1;
+      if (!features.length) {
+        hide();
+        return;
+      }
+      features.forEach((f, i) => {
+        const li = document.createElement("li");
+        li.textContent = f.label;
+        li.dataset.label = f.label;
+        li.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          input.value = f.label;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          hide();
+        });
+        list.appendChild(li);
+      });
+      list.hidden = false;
+    }
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim();
+      clearTimeout(timer);
+      if (q.length < 2) {
+        hide();
+        return;
+      }
+      timer = setTimeout(async () => {
+        try {
+          // ✅ FIXED: Added /quotation prefix
+          const res = await fetch("/quotation/api/geocode/autocomplete?text=" + encodeURIComponent(q));
+          const data = await res.json();
+          showSuggestions(data.features || []);
+        } catch (err) {
+          console.warn("Autocomplete failed", err);
+          hide();
+        }
+      }, 280);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      const items = list.querySelectorAll("li");
+      if (list.hidden || !items.length) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        activeIdx = Math.min(activeIdx + 1, items.length - 1);
+        items.forEach((li, i) => li.classList.toggle("active", i === activeIdx));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        activeIdx = Math.max(activeIdx - 1, 0);
+        items.forEach((li, i) => li.classList.toggle("active", i === activeIdx));
+      } else if (e.key === "Enter" && activeIdx >= 0) {
+        e.preventDefault();
+        input.value = items[activeIdx].dataset.label;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        hide();
+      } else if (e.key === "Escape") {
+        hide();
+      }
+    });
+
+    input.addEventListener("blur", () => setTimeout(hide, 150));
   }
 
   // ---------- Create a run card ----------
@@ -111,6 +203,9 @@
     `;
 
     runsContainer.appendChild(card);
+
+    // ✅ FIXED: Re-attached the autocomplete to the location inputs
+    card.querySelectorAll(".f-pickup-loc, .f-dropoff-loc").forEach(attachAutocomplete);
 
     // Remove button
     card.querySelector(".btn-remove").addEventListener("click", () => {

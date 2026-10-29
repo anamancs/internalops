@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Cost System</title>
+    <title>Fleet Cost Tracking | ACS Portal</title>
+    <!-- Bootstrap & Icons -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-            /* Add this to your existing styles */
         :root {
             --acs-dark: #1a202c;
             --acs-primary: #4A7EBB;
         }
-        body { background-color: #f8f9fa; } /* matched to landing page */
+        body { background-color: #f8f9fa; }
+
+        /* Metric Cards */
         .metric-card {
-            background-color: #4A7EBB;
+            background-color: var(--acs-primary);
             color: white;
             border-radius: 15px;
             padding: 30px;
@@ -23,93 +27,115 @@
         }
         .metric-card h5 { font-size: 1.1rem; font-weight: 500; margin-bottom: 15px; }
         .metric-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
+
+        /* Layout Cards */
         .filter-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .fleet-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%; }
         .vehicle-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
         .vehicle-item:last-child { border-bottom: none; }
-        .form-switch .form-check-input { cursor: pointer; }
+        .form-switch .form-check-input { cursor: pointer; transform: scale(1.2); margin-top: 0.25rem; }
+
+        /* 📱 MOBILE OPTIMIZATIONS */
+        @media (max-width: 768px) {
+            .metric-card {
+                padding: 20px 15px;
+                margin-bottom: 10px;
+            }
+            .metric-card h5 { font-size: 1rem; }
+            .metric-card h2 { font-size: 1.8rem; }
+            .filter-section { padding: 15px; }
+            .fleet-card { padding: 15px; }
+            .navbar-brand { font-size: 1.1rem; }
+            #dataStatus { display: none; /* Hide record count on phones to save space */ }
+            #fuelNote { font-size: 0.75rem !important; }
+        }
     </style>
 </head>
 <body>
-        <!-- Premium ACS Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: var(--acs-dark); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-        <div class="container">
-            <div class="d-flex align-items-center gap-3">
-                <!-- Back Button -->
+    <!-- Premium ACS Navbar (Responsive) -->
+    <nav class="navbar navbar-dark mb-4 shadow-sm" style="background-color: var(--acs-dark);">
+        <div class="container flex-wrap justify-content-between">
+            <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
                 <a href="/" class="btn btn-outline-light btn-sm" title="Back to Portal">
-                    <i class="bi bi-arrow-left"></i> Portal
+                    <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Portal</span>
                 </a>
-                <span class="navbar-brand mb-0 h1 fw-bold">
-                    <i class="bi bi-speedometer2 me-2"></i>Fleet Cost Tracking
+                <span class="navbar-brand mb-0 h5 fw-bold text-white">
+                    <i class="bi bi-speedometer2 me-1"></i>Fleet Cost
                 </span>
             </div>
-            
-            <div class="d-flex align-items-center">
-                <span class="text-white-50 small me-3" id="dataStatus">Loading records...</span>
-                <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="40" onerror="this.style.display='none'">
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-white-50 small" id="dataStatus">Loading...</span>
+                <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="32" onerror="this.style.display='none'">
             </div>
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container pb-5">
         <!-- Empty State Banner -->
         <div id="emptyBanner" class="alert alert-info d-none" role="alert">
             <strong>No data loaded yet.</strong> Upload a CSV or Excel file below to populate the dashboard.
         </div>
 
-
         <!-- Filters Section -->
         <div class="filter-section">
-            <h5>Filter Dashboard</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Year</label>
+            <h5 class="mb-3">Filter Dashboard</h5>
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Year</label>
                     <select id="yearFilter" class="form-select"><option value="All">All</option></select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Month</label>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Month</label>
                     <select id="monthFilter" class="form-select"><option value="All">All</option></select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Product Type</label>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Product Type</label>
                     <select id="productFilter" class="form-select"><option value="All">All</option></select>
                 </div>
             </div>
         </div>
 
         <!-- Metrics Dashboard -->
-        <div class="row mb-4">
-            <div class="col-md-4 mb-3">
+        <div class="row mb-4 g-2">
+            <div class="col-12 col-md-4">
                 <div class="metric-card">
                     <h5>Total Miles Driven</h5>
                     <h2 id="totalMiles">0 mi</h2>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-12 col-md-4">
                 <div class="metric-card">
                     <h5>Cumulative Drive Hours</h5>
                     <h2 id="totalHours">0</h2>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
+            <div class="col-12 col-md-4">
                 <div class="metric-card">
                     <h5>Avg. Cost per Run</h5>
                     <h2 id="avgCost">$0.00</h2>
+                    <!-- Fuel Subnote -->
+                    <p id="fuelNote" class="mt-3 mb-0 text-white-50" style="font-size: 0.85rem; font-style: italic;">
+                        Loading fuel data...
+                    </p>
                 </div>
             </div>
         </div>
 
         <!-- Fleet Management -->
-        <h4 class="mb-3">Fleet Management & Availability</h4>
-        <div class="row" id="fleetContainer"></div>
+        <h5 class="mb-3 fw-bold">Fleet Management</h5>
+        <!-- Changed col-md-4 to responsive breakpoints for better mobile layout -->
+        <div class="row g-3 mb-4" id="fleetContainer"></div>
 
-                <!-- Data Upload Section -->
-        <div class="filter-section bg-dark mb-2">
-            <h5>Load / Replace Dataset</h5>
-            <p class="text-muted small">Uploading a new file will replace the existing data in the database. Supported formats: CSV, XLSX. You only need to do this when new operational data is available.</p>
-            <form id="uploadForm" class="d-flex gap-2">
+        <!-- Data Upload Section -->
+        <div class="filter-section mt-4">
+            <h5 class="mb-2">Load / Replace Dataset</h5>
+            <p class="text-muted small mb-3">Uploading a new file replaces all existing data. Formats: CSV, XLSX.</p>
+
+            <!-- Changed to stack vertically on mobile -->
+            <form id="uploadForm" class="d-flex flex-column flex-sm-row gap-2">
                 <input type="file" id="fileInput" class="form-control" accept=".csv, .xlsx, .xls">
-                <button type="submit" class="btn btn-primary">Upload & Replace</button>
+                <button type="submit" class="btn btn-primary text-nowrap">Upload & Replace</button>
             </form>
         </div>
     </div>
@@ -145,8 +171,7 @@
 
         async function loadFilters() {
             try {
-                // UPDATED PATH
-                const response = await fetch('/fleet/api/filters');
+                const response = await fetch('/fleet/api/filters', { cache: 'no-store' });
                 const data = await response.json();
                 setSelectOptions(yearFilter, data.filters.years, yearFilter.value);
                 setSelectOptions(monthFilter, data.filters.months, monthFilter.value);
@@ -154,10 +179,10 @@
 
                 if (!data.has_data) {
                     if (emptyBanner) emptyBanner.classList.remove('d-none');
-                    dataStatus.textContent = 'No data loaded';
+                    dataStatus.textContent = 'No data';
                 } else {
                     if (emptyBanner) emptyBanner.classList.add('d-none');
-                    dataStatus.textContent = `${data.record_count} records cached`;
+                    dataStatus.textContent = `${data.record_count} records`;
                 }
                 return data.has_data;
             } catch (err) {
@@ -174,7 +199,6 @@
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            // UPDATED PATH
             const response = await fetch('/fleet/upload', { method: 'POST', body: formData });
             const data = await response.json();
 
@@ -199,13 +223,22 @@
             });
 
             try {
-                // UPDATED PATH
-                const response = await fetch(`/fleet/api/metrics?${params.toString()}`);
+                const response = await fetch(`/fleet/api/metrics?${params.toString()}`, { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('totalMiles').innerText = data.total_miles;
                     document.getElementById('totalHours').innerText = data.total_hours;
                     document.getElementById('avgCost').innerText = data.avg_cost;
+
+                    const fuelNote = document.getElementById('fuelNote');
+                    const selectedProduct = productFilter.value;
+
+                    if (selectedProduct === 'All') {
+                        fuelNote.innerText = `Avg fuel cost: ${data.avg_fuel_cost}`;
+                    } else {
+                        // Uses exact class label as requested
+                        fuelNote.innerText = `Fuel cost for a ${selectedProduct} run: ${data.avg_fuel_cost}`;
+                    }
                 }
             } catch (err) {
                 console.error('Failed to fetch metrics:', err);
@@ -214,17 +247,17 @@
 
         async function loadFleet() {
             try {
-                // UPDATED PATH
-                const response = await fetch('/fleet/api/fleet');
+                const response = await fetch('/fleet/api/fleet', { cache: 'no-store' });
                 const fleetData = await response.json();
 
                 fleetContainer.innerHTML = '';
 
                 for (const [category, vehicles] of Object.entries(fleetData)) {
                     const col = document.createElement('div');
-                    col.className = 'col-md-4 mb-3';
+                    // ✅ Optimized: Full width on phone, 2 cols on tablet, 3 cols on desktop
+                    col.className = 'col-12 col-md-6 col-lg-4';
 
-                    let vehicleHTML = `<div class="fleet-card"><h5>${category}</h5>`;
+                    let vehicleHTML = `<div class="fleet-card"><h6 class="fw-bold border-bottom pb-2 mb-3">${category}</h6>`;
 
                     vehicles.forEach(v => {
                         const isChecked = v.status === 'Available' ? 'checked' : '';
@@ -232,14 +265,14 @@
 
                         vehicleHTML += `
                             <div class="vehicle-item">
-                                <div>
-                                    <span>${v.vehicle}</span>
-                                    <br><span class="badge ${badgeColor} mt-1">${v.status}</span>
+                                <div style="max-width: 75%;">
+                                    <span class="d-block text-truncate" style="font-size: 0.9rem;">${v.vehicle}</span>
+                                    <span class="badge ${badgeColor} mt-1" style="font-size: 0.7rem;">${v.status}</span>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                           id="switch_${v.vehicle.replace(/\s/g, '')}" 
-                                           ${isChecked} 
+                                    <input class="form-check-input" type="checkbox"
+                                           id="switch_${v.vehicle.replace(/\s/g, '')}"
+                                           ${isChecked}
                                            onchange="toggleVehicle('${v.vehicle}')">
                                 </div>
                             </div>
@@ -257,7 +290,6 @@
 
         async function toggleVehicle(vehicleName) {
             try {
-                // UPDATED PATH
                 const response = await fetch('/fleet/api/fleet/toggle', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -265,11 +297,10 @@
                 });
 
                 if (response.ok) {
-                    await loadFleet(); 
-                    await fetchMetrics(); 
+                    await loadFleet();
+                    await fetchMetrics();
                 } else {
-                    console.error("Toggle failed on server side. Status:", response.status);
-                    // Reload fleet to snap the toggle back to its actual database state
+                    console.error("Toggle failed on server side.");
                     await loadFleet();
                 }
             } catch (err) {

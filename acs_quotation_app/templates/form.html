@@ -4,39 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RFQ Quotation Form — Anaman Concierge Services</title>
+  <link rel="icon" type="image/png" href="{{ url_for('quotation.static', filename='favicon.png') }}">
   <link rel="stylesheet" href="{{ url_for('quotation.static', filename='css/style.css') }}" />
-  <!-- Leaflet CSS for map/address selection -->
+
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-  
+
   <!-- Bootstrap CSS & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- 📱 Mobile Optimizations -->
+  <style>
+    /* Force single column on mobile screens */
+    @media (max-width: 768px) {
+      .grid-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+      }
+      .page {
+        padding: 10px !important; /* Reduce side padding on phones */
+      }
+      .card {
+        padding: 15px !important;
+      }
+      .section-header h2 {
+        font-size: 1.2rem !important;
+      }
+      .form-actions {
+        display: flex;
+        flex-direction: column;
+      }
+      .form-actions .btn-primary {
+        width: 100% !important;
+        padding: 15px !important; /* Bigger tap target */
+      }
+    }
+  </style>
 </head>
 <body>
-  
-  <!-- ✅ Premium ACS Navbar -->
+
+  <!-- ✅ Responsive Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: #1a202c; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-      <div class="container">
-          <div class="d-flex align-items-center gap-3">
-              <a href="/" class="btn btn-sm" style="border: 1px solid #4A7EBB; color: #4A7EBB;" title="Back to Portal" onmouseover="this.style.backgroundColor='#4A7EBB'; this.style.color='white'" onmouseout="this.style.backgroundColor='#4A7EBB'; this.style.color='white'">
-                  <i class="bi bi-arrow-left"></i> Portal
+      <div class="container flex-wrap">
+          <!-- Left Side: Portal Button & Title -->
+          <div class="d-flex align-items-center gap-2 mb-2 mb-lg-0">
+              <a href="/" class="btn btn-sm" style="border: 1px solid #4A7EBB; color: #4A7EBB;" title="Back to Portal" onmouseover="this.style.backgroundColor='#4A7EBB'; this.style.color='white'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4A7EBB'">
+                  <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Portal</span>
               </a>
-              <span class="navbar-brand mb-0 h1 fw-bold">
-                  <i class="bi bi-receipt me-2"></i>ACS Quote Generator
+              <span class="navbar-brand mb-0 h5 fw-bold text-white">
+                  <i class="bi bi-receipt me-1"></i>Generate Quote
               </span>
           </div>
-          
-          <div class="d-flex align-items-center">
-              <a href="{{ url_for('quotation.list_quotations') }}" class="btn btn-outline-light btn-sm me-3">Saved Quotes</a>
-              <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="40" onerror="this.style.display='none'">
+
+          <!-- Right Side: Saved Quotes & Logo -->
+          <div class="d-flex align-items-center gap-2">
+              <a href="{{ url_for('quotation.list_quotations') }}" class="btn btn-outline-light btn-sm">Saved Quotes</a>
+              <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="30" onerror="this.style.display='none'">
           </div>
       </div>
   </nav>
 
   <div class="page">
-    <!-- Old header removed to prevent duplication -->
-    
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -89,7 +120,7 @@
         <div class="field">
           <label for="location">Location <span class="req">*</span></label>
           <input type="text" id="location" name="location" required
-                 placeholder="e.g. Iowa City, IA — Eastern Iowa Airport (CID) / Graduate Iowa City / Kinnick Stadium" />
+                 placeholder="e.g. Iowa City, IA — Eastern Iowa Airport (CID)" />
         </div>
 
         <div class="grid-2">
@@ -101,7 +132,7 @@
           <div class="field">
             <label for="requirements">Requirements</label>
             <input type="text" id="requirements" name="requirements"
-                   placeholder="e.g. Greeting/display sign required for all drivers on every run" />
+                   placeholder="e.g. Greeting/display sign required" />
           </div>
         </div>
       </section>
@@ -114,14 +145,13 @@
         </div>
         <p class="section-note">
           Add each run / loop as a separate card. Reservation numbers are auto-generated.
-          Use the map tools to pick pickup and drop-off addresses (Iowa preferred; other states supported).
         </p>
 
         <div id="runs-container">
           <!-- Run cards injected by JS -->
         </div>
 
-        <button type="button" id="btn-add-run" class="btn-add">+ Add Another Run</button>
+        <button type="button" id="btn-add-run" class="btn-add w-100 mt-3">+ Add Another Run</button>
       </section>
 
       <!-- ==================== SECTION 3 ==================== -->
@@ -130,12 +160,10 @@
           <span class="section-num">3</span>
           <h2>Pricing &amp; Quotation</h2>
         </div>
-        <p class="section-note">
-          Best rate per run inclusive of driver, fuel, and standard tolls unless noted. All amounts in USD.
-        </p>
 
-        <div class="table-wrap">
-          <table class="pricing-table" id="pricing-table">
+        <!-- ✅ Mobile Fix: table-responsive wrapper -->
+        <div class="table-wrap table-responsive">
+          <table class="pricing-table" id="pricing-table" style="min-width: 600px;">
             <thead>
               <tr>
                 <th>Res. #</th>
@@ -169,10 +197,9 @@
           <div class="field">
             <label for="quote_valid_until">Quote Valid Until</label>
             <input type="date" id="quote_valid_until" name="quote_valid_until" />
-            <small>Optional — leave blank to omit from PDF</small>
           </div>
           <div class="field">
-            <label for="overtime_rate">Overtime Rate ($ per hour beyond drop-off)</label>
+            <label for="overtime_rate">Overtime Rate ($/hr)</label>
             <input type="number" id="overtime_rate" name="overtime_rate" step="0.01" min="0"
                    placeholder="e.g. 150" />
           </div>
@@ -181,19 +208,18 @@
         <div class="field">
           <label for="payment_terms">Payment Terms</label>
           <textarea id="payment_terms" name="payment_terms" rows="2"
-                    placeholder="e.g. 50% deposit on booking, balance due 7 days before first service"></textarea>
+                    placeholder="e.g. 50% deposit on booking..."></textarea>
         </div>
 
         <div class="field">
           <label for="cancellation_policy">Cancellation Policy</label>
           <textarea id="cancellation_policy" name="cancellation_policy" rows="2"
-                    placeholder="e.g. Full refund if cancellation confirmed by email 24 hours before scheduled pickup"></textarea>
+                    placeholder="e.g. Full refund if cancelled 24 hrs prior..."></textarea>
         </div>
 
         <div class="field">
           <label for="additional_charges">Additional Charges</label>
           <input type="text" id="additional_charges" name="additional_charges"
-                 placeholder="Tolls / Parking / Fuel Surcharge as incurred"
                  value="Tolls / Parking / Fuel Surcharge as incurred" />
         </div>
 
@@ -203,7 +229,7 @@
         </div>
       </section>
 
-      <div class="form-actions">
+      <div class="form-actions mt-4">
         <button type="submit" class="btn-primary" id="btn-submit">
           Generate PDF Quotation &amp; Save
         </button>

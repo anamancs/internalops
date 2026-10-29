@@ -19,7 +19,8 @@
 
   async function fetchReservationNumber() {
     try {
-      const res = await fetch("/api/reservation-number");
+      // ✅ UPDATED: Added /quotation prefix
+      const res = await fetch("/quotation/api/reservation-number");
       const data = await res.json();
       return data.reservation_number;
     } catch {
@@ -93,7 +94,8 @@
       }
       timer = setTimeout(async () => {
         try {
-          const res = await fetch("/api/geocode/autocomplete?text=" + encodeURIComponent(q));
+          // ✅ UPDATED: Added /quotation prefix
+          const res = await fetch("/quotation/api/geocode/autocomplete?text=" + encodeURIComponent(q));
           const data = await res.json();
           showSuggestions(data.features || []);
         } catch (err) {
