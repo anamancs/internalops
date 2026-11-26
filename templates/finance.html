@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Bottomline | ACS Portal</title>
+
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='favicon.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Chart.js for visual breakdown -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f4f6f9; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        :root {
+            --acs-navy: #172337;
+            --acs-blue: #2864dc;
+            --acs-blue-dark: #1d4fb5;
+            --acs-teal: #0b8f91;
+            --acs-ink: #1d2b3f;
+            --acs-muted: #718096;
+            --acs-line: #e3eaf2;
+            --acs-bg: #f2f5fa;
+            --acs-card: #ffffff;
+        }
+
+        body {
+            background: var(--acs-bg);
+            color: var(--acs-ink);
+            font-family: Inter, "Segoe UI", sans-serif;
+        }
+
+        .topbar {
+            background: var(--acs-navy);
+            min-height: 68px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+        }
+
+        .topbar-inner {
+            max-width: 1160px;
+            min-height: 68px;
+            margin: auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .portal-link,
+        .logout-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .portal-link {
+            color: #e2e8f0;
+        }
+
+        .portal-link:hover {
+            color: #ffffff;
+        }
+
+        .logout-link {
+            color: #fca5a5;
+        }
+
+        .logout-link:hover {
+            color: #ffffff;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .brand small {
+            display: block;
+            color: #aab7c9;
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--acs-blue), var(--acs-teal));
+            color: #ffffff;
+            font-size: 17px;
+        }
+
+        .card {
+            border: 1px solid var(--acs-line);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(31, 45, 61, 0.045);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric-card[role="button"]:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(31, 45, 61, 0.10);
+        }
+
+        .metric-card:focus-visible {
+            outline: 3px solid rgba(40, 100, 220, 0.3);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 576px) {
+            .topbar-inner {
+                padding: 0 14px;
+                min-height: 62px;
+                gap: 8px;
+            }
+
+            .topbar {
+                min-height: 62px;
+            }
+
+            .brand {
+                font-size: 12px;
+                gap: 7px;
+            }
+
+            .brand small {
+                font-size: 10px;
+            }
+
+            .brand-mark {
+                width: 32px;
+                height: 32px;
+            }
+
+            .portal-link,
+            .logout-link {
+                font-size: 11px;
+                gap: 4px;
+            }
+        }
+
+
+        /* ACS portal design system */
+        body { font-family: "DM Sans", sans-serif; background: #f4f6fb; color: #1d2b3f; }
+        h1, h2, h3, h4, h5, h6, .metric-value { font-family: "Manrope", sans-serif; }
+        .topbar { margin-bottom: 0; }
+        .topbar-inner { max-width: 1600px; }
+        .page-wrap { max-width: 1400px; margin: 0 auto; padding: 30px 32px 48px; }
+        .page-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:24px; }
+        .page-kicker { color:#718096; text-transform:uppercase; letter-spacing:.09em; font-size:11px; font-weight:700; margin-bottom:5px; }
+        .page-title { color:#172337; font-size:25px; font-weight:800; letter-spacing:-.04em; margin:0; }
+        .page-subtitle { color:#718096; font-size:13px; margin-top:5px; }
+        .card { border:1px solid #e3eaf2; border-radius:16px; box-shadow:0 5px 18px rgba(31,45,61,.045); }
+        .section-card { padding:22px !important; }
+        .section-title { font-family:"Manrope",sans-serif; color:#1d2b3f; font-size:15px; font-weight:800; margin-bottom:18px; }
+        .metric-card { position:relative; overflow:hidden; border:1px solid #e3eaf2 !important; border-radius:16px; padding:20px !important; min-height:150px; }
+        .metric-card::after { content:""; position:absolute; width:92px; height:92px; border-radius:50%; right:-30px; top:-34px; background:rgba(255,255,255,.24); pointer-events:none; }
+        .metric-card .metric-label { font-size:12px; font-weight:700; color:#65758b; margin-bottom:12px; }
+        .metric-card .metric-value { font-size:clamp(21px,2vw,29px); line-height:1.15; font-weight:800; letter-spacing:-.045em; margin-bottom:9px; }
+        .metric-card .metric-note { color:#718096; font-size:11px; }
+        .metric-revenue { background:linear-gradient(135deg,#e8f8f1,#f8fffb); border-left:4px solid #16a36a !important; }
+        .metric-expenses { background:linear-gradient(135deg,#fff0f0,#fffafa); border-left:4px solid #e05252 !important; }
+        .metric-profit { background:linear-gradient(135deg,#1d4fb5,#172f67) !important; border:0 !important; border-left:4px solid #46b6d0 !important; }
+        .metric-profit .metric-label,.metric-profit .metric-note { color:rgba(255,255,255,.72); }
+        .metric-profit .metric-value { color:#fff; }
+        .metric-fuel-est { background:linear-gradient(135deg,#edf3ff,#fbfcff); border-left:4px solid #2864dc !important; }
+        .metric-fuel-actual { background:linear-gradient(135deg,#fff7e7,#fffdf8); border-left:4px solid #e4a12b !important; }
+        .metric-fuel-variance { background:linear-gradient(135deg,#e9f8f8,#fbffff); border-left:4px solid #0b8f91 !important; }
+        .metric-fuel-est .metric-value { color:#2864dc; }
+        .metric-fuel-actual .metric-value { color:#bd8013; }
+        .metric-fuel-variance .metric-value { color:#0b8f91; }
+        .metric-icon { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:9px; margin-right:7px; background:rgba(255,255,255,.72); }
+        .metric-card[role="button"] { cursor:pointer; }
+        .metric-card[role="button"]:hover { transform:translateY(-3px); box-shadow:0 12px 24px rgba(31,45,61,.10); }
+        .form-select,.form-control { border-color:#dce4ee; border-radius:9px; min-height:38px; font-size:13px; }
+        .form-select:focus,.form-control:focus { border-color:#7ca5ee; box-shadow:0 0 0 .2rem rgba(40,100,220,.12); }
+        .btn { border-radius:9px; font-weight:700; }
+        .btn-acs { color:#fff; border:0; background:linear-gradient(135deg,#2864dc,#174da9); }
+        .btn-acs:hover { color:#fff; background:linear-gradient(135deg,#1d55c4,#123f91); }
+        .btn-sync { color:#fff; border:0; background:linear-gradient(135deg,#0b8f91,#087174); }
+        .btn-sync:hover { color:#fff; background:#087174; }
+        .form-label { color:#526277; font-size:12px; font-weight:700; }
+        .progress { background:#edf1f6; border-radius:20px; }
+        .progress-bar { border-radius:20px; background:linear-gradient(90deg,#2864dc,#0b8f91) !important; }
+        .badge { font-weight:700; }
+        .modal-content { border:0; border-radius:16px; overflow:hidden; box-shadow:0 18px 50px rgba(15,23,42,.18); }
+        .modal-header { background:#f7f9fc; border-bottom:1px solid #e3eaf2; padding:18px 22px; }
+        .modal-title { color:#172337; font-family:"Manrope",sans-serif; font-size:16px; }
+        .table thead th { background:#f4f7fb; color:#64748b; font-size:11px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #e3eaf2; padding:13px 12px; white-space:nowrap; }
+        .table tbody td { padding:13px 12px; border-color:#edf1f6; font-size:13px; }
+        .table tbody tr:hover { background:#f8faff; }
+        .muted-caption { color:#8290a3; font-size:11px; }
+        @media (max-width: 767.98px) {
+            .page-wrap { padding:22px 15px 34px; }
+            .page-heading { align-items:flex-start; flex-direction:column; }
+            .page-title { font-size:22px; }
+            .section-card { padding:17px !important; }
+            .metric-card { min-height:138px; padding:16px !important; }
+        }
+        @media (max-width: 420px) {
+            .brand span:last-child { max-width:150px; }
+            .metric-card .metric-value { font-size:20px; }
+        }
+
+                /* Main Financial Dashboard Width */
+        body > .container {
+            max-width: 540px;
+            width: calc(100% - 40px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="topbar">
+        <div class="topbar-inner">
+            <a href="/" class="portal-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Portal</span>
+            </a>
+
+            <div class="brand">
+                <span class="brand-mark">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </span>
+                <span>
+                    ACS Financial Bottomline
+                    <small>Company financial performance</small>
+                </span>
+            </div>
+
+            <a href="/auth/logout" class="logout-link">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </nav>
+
+
+    <main class="page-wrap">
+        <div class="page-heading">
+            <div>
+                <div class="page-kicker">Finance &amp; performance</div>
+                <h1 class="page-title">Financial Dashboard</h1>
+                <div class="page-subtitle">Monitor revenue, operating costs and the company bottom line.</div>
+            </div>
+            <select id="periodFilter" class="form-select w-auto fw-bold" onchange="loadDashboard()">
+                <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
+                <option value="this_year">This Year</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+
+        <!-- Financial Metric Cards -->
+        <div class="row g-3 g-lg-4 mb-4">
+
+            <!-- Total Revenue -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="card metric-card metric-revenue h-100"
+                    style="cursor:pointer;"
+                    role="button"
+                    tabindex="0"
+                    onclick="openLedger('Revenue')"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLedger('Revenue');}">
+
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-cash-stack text-success"></i></span> Total Revenue</h6>
+
+                    <h3 class="metric-value text-success" id="uiRevenue">
+                        $0.00
+                    </h3>
+
+                    <small class="metric-note"><i class="bi bi-arrow-up-right-circle me-1"></i> View revenue entries</small>
+                </div>
+            </div>
+
+            <!-- Total Expenses -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="card metric-card metric-expenses h-100"
+                    style="cursor:pointer;"
+                    role="button"
+                    tabindex="0"
+                    onclick="openLedger('Expense')"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLedger('Expense');}">
+
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-wallet2 text-danger"></i></span> Total Expenses</h6>
+
+                    <h3 class="metric-value text-danger" id="uiExpenses">
+                        $0.00
+                    </h3>
+
+                    <small class="metric-note"><i class="bi bi-arrow-up-right-circle me-1"></i> View expense entries</small>
+                </div>
+            </div>
+
+            <!-- Net Profit -->
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="card metric-card metric-profit h-100">
+
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-graph-up-arrow text-primary"></i></span> Net Profit</h6>
+
+                    <h3 class="metric-value mb-1" id="uiProfit">
+                        $0.00
+                    </h3>
+
+                    <small class="metric-note">Revenue less expenses</small>
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <!-- Fuel Cost Comparison: estimate is operational; actual is accounting -->
+        <div class="row g-3 g-lg-4 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="card metric-card metric-fuel-est h-100">
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-fuel-pump text-primary"></i></span> Estimated Fuel Expense</h6>
+                    <h3 class="metric-value mb-1" id="fuelEstimated">$0.00</h3>
+                    <small class="text-muted">GPS-based operational estimate; excluded from Total Expenses</small>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card metric-card metric-fuel-actual h-100">
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-receipt text-warning"></i></span> Actual Fuel Expense</h6>
+                    <h3 class="metric-value mb-1" id="fuelActual">$0.00</h3>
+                    <small class="text-muted">Recorded fuel purchases; included in Total Expenses</small>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card metric-card metric-fuel-variance h-100">
+                    <h6 class="metric-label"><span class="metric-icon"><i class="bi bi-arrows-angle-expand text-info"></i></span> Actual vs. Estimate</h6>
+                    <h3 class="metric-value mb-1" id="fuelVariance">$0.00</h3>
+                    <small class="text-muted" id="fuelVariancePct">0.0% variance</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Data Entry -->
+            <div class="col-md-4">
+                <!-- Manual Entry Form -->
+                <div class="card section-card mb-4">
+                    <h6 class="section-title"><i class="bi bi-pencil-square me-2 text-primary"></i>Add Manual Transaction</h6>
+                    <form id="manualForm">
+                        <div class="mb-2">
+                            <select name="type" class="form-select form-select-sm" required>
+                                <option value="" disabled selected>Type</option>
+                                <option value="Revenue">Revenue</option>
+                                <option value="Expense">Expense</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <input type="text" name="category" class="form-control form-control-sm" placeholder="Category (e.g., Payroll, Loan)" required>
+                        </div>
+                        <div class="mb-2">
+                            <input type="number" step="0.01" name="amount" class="form-control form-control-sm" placeholder="Amount ($)" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="date" name="date" class="form-control form-control-sm" required>
+                        </div>
+                        <button type="submit" class="btn btn-acs btn-sm w-100">Add Entry</button>
+                    </form>
+                </div>
+
+                <!-- Cloud Sync & CSV Upload -->
+                <div class="card section-card">
+                    <h6 class="section-title"><i class="bi bi-cloud-arrow-down me-2 text-primary"></i>Data Sync</h6>
+                    
+                    <button id="syncBtn" class="btn btn-sync btn-sm w-100 mb-3 fw-bold" onclick="syncGoogleSheet()">
+                        <i class="bi bi-arrow-repeat"></i> Sync Google Sheet
+                    </button>
+
+                    <hr class="my-2">
+                    
+                    <form id="uploadForm">
+                        <label class="small text-muted mb-1">Or upload a manual CSV:</label>
+                        <input type="file" name="file" class="form-control form-control-sm mb-2" accept=".csv" required>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">Upload CSV</button>
+                    </form>
+                </div>
+
+                <!-- CSV Upload Form -->
+
+                <!--
+                <div class="card p-4">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-spreadsheet"></i> Upload CSV</h6>
+                    <form id="uploadForm">
+                        <input type="file" name="file" class="form-control form-control-sm mb-2" accept=".csv" required>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Import CSV</button>
+                    </form>
+                    <small class="text-muted mt-2 d-block">CSV format required: Date, Type (Revenue/Expense), Category, Amount</small>
+                </div>-->
+            </div>
+
+            <!-- Right Column: Chart -->
+
+            <!-- Right Column: Expense Breakdown and Cost Centers -->
+            <div class="col-md-8">
+                <div class="card section-card h-100">
+                    <h6 class="section-title">
+                        <i class="bi bi-pie-chart-fill me-2"></i>
+                        Expense Breakdown
+                    </h6>
+
+                    <div class="row align-items-center">
+                        <!-- Doughnut Chart -->
+                        <div class="col-lg-7">
+                            <div style="position:relative;height:300px;width:100%;">
+                                <canvas id="expenseChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Cost Center Totals -->
+                        <div class="col-lg-5 mt-3 mt-lg-0">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">Spending by Category</h6>
+                                <span class="badge bg-light text-dark">OPEX</span>
+                            </div>
+
+                            <div id="expenseCategoryList">
+                                <div class="text-muted small">
+                                    Loading expense categories...
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Total Spending</span>
+                                <span class="fw-bold text-danger" id="categoryTotal">
+                                    $0.00
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+        <!-- Ledger Modal -->
+    <div class="modal fade" id="ledgerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="ledgerTitle"><i class="bi bi-journal-text"></i> Financial Ledger</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function syncGoogleSheet() {
+            const btn = document.getElementById('syncBtn');
+            btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Syncing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/finance/sync', { method: 'POST' });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    // Silently refresh the dashboard data
+                    loadDashboard();
+                    console.log(data.message);
+                } else {
+                    alert(data.error);
+                }
+            } catch (err) {
+                console.error("Sync error", err);
+            } finally {
+                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sync Google Sheet';
+                btn.disabled = false;
+            }
+        }
+
+        let chartInstance = null;
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+        }
+
+        async function loadDashboard() {
+            const period = document.getElementById('periodFilter').value;
+
+            try {
+                const res = await fetch(
+                    `/finance/api/summary?period=${encodeURIComponent(period)}`
+                );
+
+                if (!res.ok) throw new Error('Unable to load financial summary.');
+
+                const data = await res.json();
+
+                document.getElementById('uiRevenue').innerText = data.revenue;
+                document.getElementById('uiExpenses').innerText = data.total_expenses;
+                document.getElementById('uiProfit').innerText = data.net_profit;
+
+                document.getElementById('fuelEstimated').innerText =
+                    formatCurrency(data.estimated_fuel_expense);
+                document.getElementById('fuelActual').innerText =
+                    formatCurrency(data.actual_fuel_expense);
+
+                const variance = Number(data.fuel_variance || 0);
+                const varianceLabel = `${variance > 0 ? '+' : ''}${formatCurrency(variance)}`;
+                const varianceElement = document.getElementById('fuelVariance');
+                varianceElement.innerText = varianceLabel;
+                varianceElement.classList.toggle('text-danger', variance > 0);
+                varianceElement.classList.toggle('text-success', variance <= 0);
+                document.getElementById('fuelVariancePct').innerText =
+                    `${Number(data.fuel_variance_pct || 0).toFixed(1)}% vs. estimated fuel cost`;
+
+                const profitCard = document.getElementById('uiProfit');
+                profitCard.classList.toggle(
+                    'text-danger',
+                    !data.is_profitable
+                );
+                profitCard.classList.toggle('text-danger', !data.is_profitable);
+                profitCard.classList.toggle('text-white', data.is_profitable);
+
+                renderExpenseChart(data.expense_breakdown || {});
+                renderExpenseCategories(
+                    data.expense_categories || [],
+                    data.total_expenses
+                );
+
+            } catch (error) {
+                console.error('Dashboard loading error:', error);
+                alert('Unable to load the financial dashboard. Please try again.');
+            }
+        }
+
+        function renderExpenseChart(breakdown) {
+            const canvas = document.getElementById('expenseChart');
+            const ctx = canvas.getContext('2d');
+
+            const labels = Object.keys(breakdown);
+            const values = Object.values(breakdown).map(Number);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const hasExpenses = values.some(value => value > 0);
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: hasExpenses ? labels : ['No expenses recorded'],
+                    datasets: [{
+                        data: hasExpenses ? values : [1],
+                        backgroundColor: hasExpenses
+                            ? [
+                                '#dc3545',
+                                '#fd7e14',
+                                '#ffc107',
+                                '#0d6efd',
+                                '#6f42c1',
+                                '#20c997',
+                                '#6c757d',
+                                '#0b8f91',
+                                '#172337',
+                                '#adb5bd'
+                            ]
+                            : ['#e9ecef'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            display: hasExpenses,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            enabled: hasExpenses,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${formatCurrency(context.raw)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderExpenseCategories(categories, totalExpenses) {
+            const container = document.getElementById('expenseCategoryList');
+            const totalElement = document.getElementById('categoryTotal');
+
+            container.innerHTML = '';
+            totalElement.textContent = totalExpenses || '$0.00';
+
+            if (!categories.length) {
+                const empty = document.createElement('p');
+                empty.className = 'text-muted small mb-0';
+                empty.textContent = 'No expense categories recorded for this period.';
+                container.appendChild(empty);
+                return;
+            }
+
+            categories.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-3';
+
+                const heading = document.createElement('div');
+                heading.className = 'd-flex justify-content-between gap-2 mb-1';
+
+                const category = document.createElement('span');
+                category.className = 'small fw-semibold text-truncate';
+                category.textContent = item.category;
+
+                const amount = document.createElement('span');
+                amount.className = 'small fw-bold text-danger text-nowrap';
+                amount.textContent = formatCurrency(item.amount);
+
+                heading.append(category, amount);
+
+                const progress = document.createElement('div');
+                progress.className = 'progress';
+                progress.style.height = '6px';
+
+                const bar = document.createElement('div');
+                bar.className = 'progress-bar';
+                bar.style.width = `${Math.min(Number(item.percentage || 0), 100)}%`;
+                bar.style.backgroundColor = '#dc3545';
+                bar.setAttribute('role', 'progressbar');
+                bar.setAttribute('aria-valuenow', item.percentage);
+                bar.setAttribute('aria-valuemin', '0');
+                bar.setAttribute('aria-valuemax', '100');
+
+                progress.appendChild(bar);
+
+                const percentage = document.createElement('div');
+                percentage.className = 'text-muted text-end';
+                percentage.style.fontSize = '11px';
+                percentage.textContent = `${item.percentage}% of expenses`;
+
+                wrapper.append(heading, progress, percentage);
+                container.appendChild(wrapper);
+            });
+        }
+
+
+        // Handle Manual Form
+        document.getElementById('manualForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const res = await fetch('/finance/manual', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            if(res.ok) {
+                e.target.reset();
+                loadDashboard();
+            } else {
+                alert('Error adding transaction');
+            }
+        });
+
+        // Handle CSV Upload
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Importing...';
+            
+            const res = await fetch('/finance/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await res.json();
+            
+            alert(result.message || result.error);
+            if(res.ok) {
+                e.target.reset();
+                loadDashboard();
+            }
+            btn.innerText = 'Import CSV';
+        });
+
+        // Initialize
+        loadDashboard();
+
+        // Initialize Bootstrap Modal
+
+        let activeLedgerType = '';
+
+        const ledgerModal = new bootstrap.Modal(
+            document.getElementById('ledgerModal')
+        );
+
+        async function openLedger(type = '') {
+            activeLedgerType = type;
+
+            const period = document.getElementById('periodFilter').value;
+            const title = document.getElementById('ledgerTitle');
+            const tbody = document.getElementById('ledgerBody');
+
+            title.innerHTML = '';
+
+            const titleIcon = document.createElement('i');
+            titleIcon.className = 'bi bi-journal-text me-2';
+
+            title.appendChild(titleIcon);
+            title.appendChild(
+                document.createTextNode(
+                    type ? `${type} Transactions` : 'Financial Ledger'
+                )
+            );
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        Loading transactions...
+                    </td>
+                </tr>
+            `;
+
+            ledgerModal.show();
+
+            try {
+                const params = new URLSearchParams({ period });
+
+                if (type) params.set('type', type);
+
+                const res = await fetch(`/finance/api/ledger?${params}`);
+
+                if (!res.ok) throw new Error('Unable to retrieve ledger.');
+
+                const data = await res.json();
+
+                tbody.innerHTML = '';
+
+                if (!data.transactions || data.transactions.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No ${type ? type.toLowerCase() : ''} entries found
+                                for this period.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                data.transactions.forEach(tx => {
+                    const row = document.createElement('tr');
+
+                    const dateCell = document.createElement('td');
+                    const parsedDate = new Date(tx.date + 'T00:00:00');
+
+                    dateCell.textContent = isNaN(parsedDate)
+                        ? tx.date
+                        : parsedDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+
+                    const typeCell = document.createElement('td');
+                    const typeBadge = document.createElement('span');
+
+                    typeBadge.className = tx.type === 'Revenue'
+                        ? 'badge bg-success'
+                        : 'badge bg-danger';
+
+                    typeBadge.textContent = tx.type;
+                    typeCell.appendChild(typeBadge);
+
+                    const categoryCell = document.createElement('td');
+                    categoryCell.textContent = tx.category || 'Uncategorized';
+
+                    const source = document.createElement('div');
+                    source.className = 'text-muted';
+                    source.style.fontSize = '11px';
+                    source.textContent = tx.source || '';
+                    categoryCell.appendChild(source);
+
+                    const amountCell = document.createElement('td');
+                    amountCell.className = 'fw-bold ' +
+                        (tx.type === 'Revenue' ? 'text-success' : 'text-danger');
+
+                    amountCell.textContent = formatCurrency(tx.amount);
+
+                    const actionCell = document.createElement('td');
+
+                    if (tx.read_only) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-secondary';
+
+                        badge.textContent = tx.is_receipt
+                            ? 'Receipt'
+                            : 'Synced';
+
+                        actionCell.appendChild(badge);
+                    } else {
+                        const editButton = document.createElement('button');
+                        editButton.className = 'btn btn-sm btn-outline-primary me-1';
+                        editButton.innerHTML = '<i class="bi bi-pencil"></i>';
+                        editButton.title = 'Edit transaction';
+                        editButton.onclick = () => editTx(
+                            tx.id,
+                            tx.date,
+                            tx.type,
+                            tx.category,
+                            tx.amount
+                        );
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.className = 'btn btn-sm btn-outline-danger';
+                        deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+                        deleteButton.title = 'Delete transaction';
+                        deleteButton.onclick = () => deleteTx(tx.id);
+
+                        actionCell.append(editButton, deleteButton);
+                    }
+
+                    row.append(
+                        dateCell,
+                        typeCell,
+                        categoryCell,
+                        amountCell,
+                        actionCell
+                    );
+
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Ledger error:', error);
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-danger py-4">
+                            Unable to load transactions. Please try again.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function deleteTx(id) {
+            if (!confirm('Are you sure you want to delete this entry?')) return;
+
+            try {
+                const res = await fetch(`/finance/api/ledger/${id}/delete`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(data.error || 'Unable to delete transaction.');
+                    return;
+                }
+
+                await openLedger(activeLedgerType);
+                await loadDashboard();
+
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('An error occurred while deleting the transaction.');
+            }
+        }
+
+        async function editTx(id, currentDate, currentType, currentCategory, currentAmount) {
+            const newAmount = prompt(
+                `Update Amount ($${currentAmount}):`,
+                currentAmount
+            );
+
+            if (newAmount === null) return;
+
+            if (!Number.isFinite(Number(newAmount)) || Number(newAmount) <= 0) {
+                alert('Please enter a valid amount greater than zero.');
+                return;
+            }
+
+            const newCategory = prompt(
+                `Update Category (${currentCategory}):`,
+                currentCategory
+            );
+
+            if (newCategory === null) return;
+
+            if (!newCategory.trim()) {
+                alert('Category cannot be empty.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/finance/api/ledger/${id}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: currentDate,
+                        type: currentType,
+                        category: newCategory.trim(),
+                        amount: newAmount
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(data.error || 'Unable to update transaction.');
+                    return;
+                }
+
+                await openLedger(activeLedgerType);
+                await loadDashboard();
+
+            } catch (error) {
+                console.error('Edit error:', error);
+                alert('An error occurred while updating the transaction.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,469 +1,1119 @@
+
 /**
- * RFQ Form — dynamic runs, Leaflet maps, pricing sync
+ * ACS Quotation Generator
+ * Dynamic service runs, address autocomplete, Leaflet maps and pricing.
  */
 
 (function () {
-  "use strict";
+    "use strict";
 
-  let runIndex = 0;
-  const runsContainer = document.getElementById("runs-container");
-  const pricingBody = document.getElementById("pricing-body");
-  const runsJsonInput = document.getElementById("runs_json");
-  const totalRunsInput = document.getElementById("total_runs");
-  const form = document.getElementById("rfq-form");
+    let runIndex = 0;
 
-  // Store Leaflet map instances per run so we can clean up
-  const maps = {};
+    const runsContainer = document.getElementById("runs-container");
+    const pricingBody = document.getElementById("pricing-body");
+    const runsJsonInput = document.getElementById("runs_json");
+    const totalRunsInput = document.getElementById("total_runs");
+    const form = document.getElementById("rfq-form");
 
-  // ---------- Helpers ----------
+    const maps = {};
+    const mapMarkers = {};
 
-  async function fetchReservationNumber() {
-    try {
-      // ✅ UPDATED: Added /quotation prefix
-      const res = await fetch("/quotation/api/reservation-number");
-      const data = await res.json();
-      return data.reservation_number;
-    } catch {
-      return String(Math.floor(100000 + Math.random() * 900000));
-    }
-  }
+    // =====================================================
+    // HELPERS
+    // =====================================================
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
-
-  // ---------- ORS address autocomplete ----------
-
-  function attachAutocomplete(input) {
-    if (input.dataset.acAttached) return;
-    input.dataset.acAttached = "1";
-
-    const wrap = document.createElement("div");
-    wrap.className = "ac-wrap";
-    input.parentNode.insertBefore(wrap, input);
-    wrap.appendChild(input);
-
-    const list = document.createElement("ul");
-    list.className = "ac-list";
-    list.hidden = true;
-    wrap.appendChild(list);
-
-    let timer = null;
-    let activeIdx = -1;
-
-    function hide() {
-      list.hidden = true;
-      list.innerHTML = "";
-      activeIdx = -1;
-    }
-
-    function showSuggestions(features) {
-      list.innerHTML = "";
-      activeIdx = -1;
-      if (!features.length) {
-        hide();
-        return;
-      }
-      features.forEach((f, i) => {
-        const li = document.createElement("li");
-        li.textContent = f.label;
-        li.dataset.label = f.label;
-        li.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          input.value = f.label;
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-          hide();
-        });
-        list.appendChild(li);
-      });
-      list.hidden = false;
-    }
-
-    input.addEventListener("input", () => {
-      const q = input.value.trim();
-      clearTimeout(timer);
-      if (q.length < 2) {
-        hide();
-        return;
-      }
-      timer = setTimeout(async () => {
+    async function fetchReservationNumber() {
         try {
-          // ✅ UPDATED: Added /quotation prefix
-          const res = await fetch("/quotation/api/geocode/autocomplete?text=" + encodeURIComponent(q));
-          const data = await res.json();
-          showSuggestions(data.features || []);
-        } catch (err) {
-          console.warn("Autocomplete failed", err);
-          hide();
+            const response = await fetch(
+                "/quotation/api/reservation-number"
+            );
+
+            if (!response.ok) {
+                throw new Error("Reservation API request failed");
+            }
+
+            const data = await response.json();
+
+            if (!data.reservation_number) {
+                throw new Error("Reservation number missing");
+            }
+
+            return String(data.reservation_number);
+
+        } catch (error) {
+            console.warn("Reservation number fallback:", error);
+
+            return String(
+                Math.floor(100000 + Math.random() * 900000)
+            );
         }
-      }, 280);
-    });
+    }
 
-    input.addEventListener("keydown", (e) => {
-      const items = list.querySelectorAll("li");
-      if (list.hidden || !items.length) return;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        activeIdx = Math.min(activeIdx + 1, items.length - 1);
-        items.forEach((li, i) => li.classList.toggle("active", i === activeIdx));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        activeIdx = Math.max(activeIdx - 1, 0);
-        items.forEach((li, i) => li.classList.toggle("active", i === activeIdx));
-      } else if (e.key === "Enter" && activeIdx >= 0) {
-        e.preventDefault();
-        input.value = items[activeIdx].dataset.label;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-        hide();
-      } else if (e.key === "Escape") {
-        hide();
-      }
-    });
 
-    input.addEventListener("blur", () => setTimeout(hide, 150));
-  }
+    function escapeHtml(value) {
+        if (!value) return "";
 
-  // ---------- Create a run card ----------
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
-  async function addRun(prefill = null) {
-    const idx = runIndex++;
-    const resNum = prefill?.reservation_number || (await fetchReservationNumber());
 
-    const card = document.createElement("div");
-    card.className = "run-card";
-    card.dataset.idx = idx;
-    card.innerHTML = `
-      <div class="run-card-header">
-        <h3>Run <span class="run-label">${idx + 1}</span> &mdash; Res. # <span class="res-num">${escapeHtml(resNum)}</span></h3>
-        <button type="button" class="btn-remove" data-idx="${idx}">Remove</button>
-      </div>
+    function getRunCards() {
+        return runsContainer.querySelectorAll(".run-card");
+    }
 
-      <input type="hidden" class="f-reservation" value="${escapeHtml(resNum)}" />
 
-      <div class="grid-2">
-        <div class="field">
-          <label>Date <span class="req">*</span></label>
-          <input type="date" class="f-date" required value="${prefill?.date || ""}" />
-        </div>
-        <div class="field">
-          <label>Pick-Up Time <span class="req">*</span></label>
-          <input type="time" class="f-pickup-time" required value="${prefill?.pickup_time || ""}" />
-        </div>
-      </div>
+    // =====================================================
+    // ADDRESS AUTOCOMPLETE
+    // =====================================================
 
-      <div class="grid-2">
-        <div class="field">
-          <label>Passengers</label>
-          <input type="text" class="f-passengers" placeholder="e.g. 55 or 1 bus"
-                 value="${escapeHtml(prefill?.passengers || "")}" />
-        </div>
-        <div class="field">
-          <label>Type <span class="req">*</span></label>
-          <select class="f-type" required>
-            <option value="">— Select type —</option>
-            <option value="Airport Transfer" ${prefill?.type === "Airport Transfer" ? "selected" : ""}>Airport Transfer</option>
-            <option value="Shuttle (Hourly)" ${prefill?.type === "Shuttle (Hourly)" ? "selected" : ""}>Shuttle (Hourly)</option>
-            <option value="Limo (Hourly)" ${prefill?.type === "Limo (Hourly)" ? "selected" : ""}>Limo (Hourly)</option>
-          </select>
-        </div>
-      </div>
+    function attachAutocomplete(input) {
 
-      <div class="field">
-        <label>Pickup Location <span class="req">*</span></label>
-        <div class="addr-row">
-          <input type="text" class="f-pickup-loc" required
-                 placeholder="Start typing address or use map…"
-                 value="${escapeHtml(prefill?.pickup_location || "")}" />
-          <button type="button" class="btn-map btn-pick-map" data-idx="${idx}" data-target="pickup">Map</button>
-        </div>
-        <div class="map-box" id="map-pickup-${idx}" style="display:none;"></div>
-      </div>
+        if (input.dataset.acAttached) return;
 
-      <div class="field">
-        <label>Drop-Off Location <span class="req">*</span></label>
-        <div class="addr-row">
-          <input type="text" class="f-dropoff-loc" required
-                 placeholder="Start typing address or use map…"
-                 value="${escapeHtml(prefill?.dropoff_location || "")}" />
-          <button type="button" class="btn-map btn-drop-map" data-idx="${idx}" data-target="dropoff">Map</button>
-        </div>
-        <div class="map-box" id="map-dropoff-${idx}" style="display:none;"></div>
-      </div>
+        input.dataset.acAttached = "1";
 
-      <div class="field">
-        <label>Loop / Flight Details</label>
-        <textarea class="f-loop" rows="2"
-                  placeholder="e.g. 3 loops • AA 3458 from ORD – ETA 18:06">${escapeHtml(prefill?.loop_details || "")}</textarea>
-      </div>
-    `;
+        const wrap = document.createElement("div");
+        wrap.className = "ac-wrap";
 
-    runsContainer.appendChild(card);
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
 
-    // Address autocomplete on pickup / drop-off
-    card.querySelectorAll(".f-pickup-loc, .f-dropoff-loc").forEach(attachAutocomplete);
+        const list = document.createElement("ul");
 
-    // Remove button
-    card.querySelector(".btn-remove").addEventListener("click", () => {
-      // Clean up maps
-      ["pickup", "dropoff"].forEach((t) => {
-        const key = `${t}-${idx}`;
-        if (maps[key]) {
-          maps[key].remove();
-          delete maps[key];
+        list.className = "ac-list";
+        list.hidden = true;
+
+        wrap.appendChild(list);
+
+        let timer = null;
+        let activeIdx = -1;
+        let requestController = null;
+        let requestSequence = 0;
+
+
+        function hide() {
+            list.hidden = true;
+            list.innerHTML = "";
+            activeIdx = -1;
         }
-      });
-      card.remove();
-      renumberRuns();
-      syncPricing();
-      updateTotalRunsField();
-    });
 
-    // Map toggle buttons
-    card.querySelectorAll(".btn-map").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.target;
-        const mapId = `map-${target}-${idx}`;
-        const mapEl = document.getElementById(mapId);
-        if (mapEl.style.display === "none") {
-          mapEl.style.display = "block";
-          initMap(idx, target, mapEl, card);
-        } else {
-          mapEl.style.display = "none";
+
+        function selectSuggestion(label) {
+            input.value = label;
+
+            input.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+
+            hide();
         }
-      });
-    });
 
-    // Live sync pricing when fields change
-    card.querySelectorAll("input, select, textarea").forEach((el) => {
-      el.addEventListener("change", () => {
+
+        function showSuggestions(features) {
+
+            list.innerHTML = "";
+            activeIdx = -1;
+
+            if (!features || !features.length) {
+                hide();
+                return;
+            }
+
+            features.forEach((feature) => {
+
+                const li = document.createElement("li");
+
+                li.textContent = feature.label;
+                li.dataset.label = feature.label;
+
+                li.addEventListener("mousedown", (event) => {
+                    event.preventDefault();
+                    selectSuggestion(feature.label);
+                });
+
+                list.appendChild(li);
+            });
+
+            list.hidden = false;
+        }
+
+
+        input.addEventListener("input", () => {
+
+            const query = input.value.trim();
+
+            clearTimeout(timer);
+
+            if (requestController) {
+                requestController.abort();
+                requestController = null;
+            }
+
+            if (query.length < 2) {
+                hide();
+                return;
+            }
+
+            const currentSequence = ++requestSequence;
+
+            timer = setTimeout(async () => {
+
+                try {
+
+                    requestController = new AbortController();
+
+                    const response = await fetch(
+                        "/quotation/api/geocode/autocomplete?text=" +
+                        encodeURIComponent(query),
+                        {
+                            signal: requestController.signal
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Autocomplete request failed");
+                    }
+
+                    const data = await response.json();
+
+                    // Ignore outdated responses.
+                    if (currentSequence !== requestSequence) {
+                        return;
+                    }
+
+                    // Do not show suggestions for an input
+                    // that has changed since the request started.
+                    if (input.value.trim() !== query) {
+                        return;
+                    }
+
+                    showSuggestions(data.features || []);
+
+                } catch (error) {
+
+                    if (error.name !== "AbortError") {
+                        console.warn("Autocomplete failed:", error);
+                    }
+
+                }
+
+            }, 280);
+
+        });
+
+
+        input.addEventListener("keydown", (event) => {
+
+            const items = list.querySelectorAll("li");
+
+            if (list.hidden || !items.length) return;
+
+            if (event.key === "ArrowDown") {
+
+                event.preventDefault();
+
+                activeIdx = Math.min(
+                    activeIdx + 1,
+                    items.length - 1
+                );
+
+            } else if (event.key === "ArrowUp") {
+
+                event.preventDefault();
+
+                activeIdx = Math.max(
+                    activeIdx - 1,
+                    0
+                );
+
+            } else if (
+                event.key === "Enter" &&
+                activeIdx >= 0
+            ) {
+
+                event.preventDefault();
+
+                selectSuggestion(
+                    items[activeIdx].dataset.label
+                );
+
+                return;
+
+            } else if (event.key === "Escape") {
+
+                hide();
+                return;
+
+            } else {
+                return;
+            }
+
+            items.forEach((item, index) => {
+                item.classList.toggle(
+                    "active",
+                    index === activeIdx
+                );
+            });
+
+        });
+
+
+        input.addEventListener("blur", () => {
+            setTimeout(hide, 150);
+        });
+
+    }
+
+
+    // =====================================================
+    // CREATE A SERVICE RUN
+    // =====================================================
+
+    async function addRun(prefill = null) {
+
+        const idx = runIndex++;
+
+        const reservationNumber =
+            prefill?.reservation_number ||
+            await fetchReservationNumber();
+
+        const card = document.createElement("div");
+
+        card.className = "run-card";
+        card.dataset.idx = idx;
+
+        card.innerHTML = `
+
+            <div class="run-card-header">
+
+                <h3>
+                    Run <span class="run-label">${idx + 1}</span>
+                    &mdash;
+                    Res. # <span class="res-num">${escapeHtml(reservationNumber)}</span>
+                </h3>
+
+                <button
+                    type="button"
+                    class="btn-remove"
+                    data-idx="${idx}">
+                    <i class="bi bi-trash3"></i>
+                    Remove
+                </button>
+
+            </div>
+
+            <input
+                type="hidden"
+                class="f-reservation"
+                value="${escapeHtml(reservationNumber)}"
+            />
+
+
+            <div class="grid-2">
+
+                <div class="field">
+                    <label>Date <span class="req">*</span></label>
+
+                    <input
+                        type="date"
+                        class="f-date"
+                        required
+                        value="${escapeHtml(prefill?.date || "")}"
+                    />
+                </div>
+
+
+                <div class="field">
+                    <label>Pick-Up Time <span class="req">*</span></label>
+
+                    <input
+                        type="time"
+                        class="f-pickup-time"
+                        required
+                        value="${escapeHtml(prefill?.pickup_time || "")}"
+                    />
+                </div>
+
+            </div>
+
+
+            <div class="grid-2">
+
+                <div class="field">
+                    <label>Passengers</label>
+
+                    <input
+                        type="text"
+                        class="f-passengers"
+                        placeholder="e.g. 55 or 1 bus"
+                        value="${escapeHtml(prefill?.passengers || "")}"
+                    />
+                </div>
+
+
+                <div class="field">
+                    <label>Type <span class="req">*</span></label>
+
+                    <select class="f-type" required>
+
+                        <option value="">Select service type</option>
+
+                        <option value="Airport Transfer"
+                            ${prefill?.type === "Airport Transfer" ? "selected" : ""}>
+                            Airport Transfer
+                        </option>
+
+                        <option value="Shuttle (Hourly)"
+                            ${prefill?.type === "Shuttle (Hourly)" ? "selected" : ""}>
+                            Shuttle (Hourly)
+                        </option>
+
+                        <option value="Limo (Hourly)"
+                            ${prefill?.type === "Limo (Hourly)" ? "selected" : ""}>
+                            Limo (Hourly)
+                        </option>
+
+                        <option value="Van (Hourly)"
+                            ${prefill?.type === "Van (Hourly)" ? "selected" : ""}>
+                            Van (Hourly)
+                        </option>
+
+                    </select>
+                </div>
+
+            </div>
+
+
+            <div class="field">
+
+                <label>Pickup Location <span class="req">*</span></label>
+
+                <div class="addr-row">
+
+                    <input
+                        type="text"
+                        class="f-pickup-loc"
+                        required
+                        placeholder="Start typing address or use map..."
+                        value="${escapeHtml(prefill?.pickup_location || "")}"
+                    />
+
+                    <button
+                        type="button"
+                        class="btn-map btn-pick-map"
+                        data-idx="${idx}"
+                        data-target="pickup">
+
+                        <i class="bi bi-map"></i>
+                        Map
+
+                    </button>
+
+                </div>
+
+                <div
+                    class="map-box"
+                    id="map-pickup-${idx}"
+                    style="display:none;">
+                </div>
+
+            </div>
+
+
+            <div class="field">
+
+                <label>Drop-Off Location <span class="req">*</span></label>
+
+                <div class="addr-row">
+
+                    <input
+                        type="text"
+                        class="f-dropoff-loc"
+                        required
+                        placeholder="Start typing address or use map..."
+                        value="${escapeHtml(prefill?.dropoff_location || "")}"
+                    />
+
+                    <button
+                        type="button"
+                        class="btn-map btn-drop-map"
+                        data-idx="${idx}"
+                        data-target="dropoff">
+
+                        <i class="bi bi-map"></i>
+                        Map
+
+                    </button>
+
+                </div>
+
+                <div
+                    class="map-box"
+                    id="map-dropoff-${idx}"
+                    style="display:none;">
+                </div>
+
+            </div>
+
+
+            <div class="field">
+
+                <label>Loop / Flight Details</label>
+
+                <textarea
+                    class="f-loop"
+                    rows="2"
+                    placeholder="e.g. 3 loops • AA 3458 from ORD – ETA 18:06">${escapeHtml(prefill?.loop_details || "")}</textarea>
+
+            </div>
+
+        `;
+
+
+        runsContainer.appendChild(card);
+
+
+        // Attach autocomplete.
+        card.querySelectorAll(
+            ".f-pickup-loc, .f-dropoff-loc"
+        ).forEach(attachAutocomplete);
+
+
+        // ---------------------------------------------
+        // Remove run
+        // ---------------------------------------------
+
+        card.querySelector(".btn-remove").addEventListener(
+            "click",
+            () => {
+
+                ["pickup", "dropoff"].forEach((target) => {
+
+                    const key = `${target}-${idx}`;
+
+                    if (maps[key]) {
+                        maps[key].remove();
+                        delete maps[key];
+                    }
+
+                    delete mapMarkers[key];
+
+                });
+
+                card.remove();
+
+                renumberRuns();
+                syncPricing();
+                updateTotalRunsField();
+
+            }
+        );
+
+
+        // ---------------------------------------------
+        // Map controls
+        // ---------------------------------------------
+
+        card.querySelectorAll(".btn-map").forEach((button) => {
+
+            button.addEventListener("click", () => {
+
+                const target = button.dataset.target;
+
+                const mapId = `map-${target}-${idx}`;
+
+                const mapElement =
+                    document.getElementById(mapId);
+
+                if (mapElement.style.display === "none") {
+
+                    mapElement.style.display = "block";
+
+                    initMap(
+                        idx,
+                        target,
+                        mapElement,
+                        card
+                    );
+
+                } else {
+
+                    mapElement.style.display = "none";
+
+                }
+
+            });
+
+        });
+
+
+        // ---------------------------------------------
+        // Live pricing synchronization
+        // ---------------------------------------------
+
+        card.querySelectorAll(
+            "input, select, textarea"
+        ).forEach((element) => {
+
+            element.addEventListener("change", () => {
+
+                syncPricing();
+                updateTotalRunsField();
+
+            });
+
+
+            element.addEventListener("input", () => {
+
+                if (
+                    element.classList.contains("f-pickup-loc") ||
+                    element.classList.contains("f-dropoff-loc") ||
+                    element.classList.contains("f-date") ||
+                    element.classList.contains("f-type")
+                ) {
+                    syncPricing();
+                }
+
+            });
+
+        });
+
+
         syncPricing();
         updateTotalRunsField();
-      });
-      el.addEventListener("input", () => {
-        // Debounced light update for text
-        if (el.classList.contains("f-pickup-loc") || el.classList.contains("f-dropoff-loc") ||
-            el.classList.contains("f-date") || el.classList.contains("f-type")) {
-          syncPricing();
+
+        return card;
+
+    }
+
+
+    // =====================================================
+    // RENUMBER SERVICE RUNS
+    // =====================================================
+
+    function renumberRuns() {
+
+        const cards = getRunCards();
+
+        cards.forEach((card, index) => {
+
+            const label = card.querySelector(".run-label");
+
+            if (label) {
+                label.textContent = index + 1;
+            }
+
+        });
+
+    }
+
+
+    // =====================================================
+    // TOTAL RUNS FIELD
+    // =====================================================
+
+    function updateTotalRunsField() {
+
+        const count = getRunCards().length;
+
+        if (!totalRunsInput.dataset.manual) {
+
+            totalRunsInput.value = count
+                ? `${count} run${count !== 1 ? "s" : ""}`
+                : "";
+
         }
-      });
-    });
 
-    syncPricing();
-    updateTotalRunsField();
-    return card;
-  }
-
-  function renumberRuns() {
-    const cards = runsContainer.querySelectorAll(".run-card");
-    cards.forEach((card, i) => {
-      card.querySelector(".run-label").textContent = i + 1;
-    });
-  }
-
-  function updateTotalRunsField() {
-    const n = runsContainer.querySelectorAll(".run-card").length;
-    if (!totalRunsInput.dataset.manual) {
-      totalRunsInput.value = n ? `${n} run${n !== 1 ? "s" : ""}` : "";
-    }
-  }
-
-  totalRunsInput.addEventListener("input", () => {
-    totalRunsInput.dataset.manual = "1";
-  });
-
-  // ---------- Leaflet map with Nominatim geocoder ----------
-
-  function initMap(idx, target, mapEl, card) {
-    const key = `${target}-${idx}`;
-    if (maps[key]) {
-      maps[key].invalidateSize();
-      return;
     }
 
-    // Center on Iowa City area by default
-    const map = L.map(mapEl).setView([41.6611, -91.5302], 10);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap",
-      maxZoom: 18,
-    }).addTo(map);
 
-    const geocoder = L.Control.geocoder({
-      defaultMarkGeocode: false,
-      placeholder: "Search address (Iowa preferred)…",
-      geocoder: L.Control.Geocoder.nominatim({
-        geocodingQueryParams: {
-          // Bias toward Iowa / Midwest
-          countrycodes: "us",
-          viewbox: "-96.7,40.3,-90.1,43.6", // rough Iowa bounding box
-          bounded: 0, // still allow outside Iowa
-        },
-      }),
-    })
-      .on("markgeocode", (e) => {
-        const { center, name, bbox } = e.geocode;
-        map.fitBounds(bbox);
-        L.marker(center).addTo(map);
-        // Write address into the corresponding input
-        const inputCls = target === "pickup" ? ".f-pickup-loc" : ".f-dropoff-loc";
-        const input = card.querySelector(inputCls);
-        if (input) {
-          input.value = name;
-          input.dispatchEvent(new Event("change"));
+    totalRunsInput.addEventListener("input", () => {
+        totalRunsInput.dataset.manual = "1";
+    });
+
+
+    // =====================================================
+    // LEAFLET MAP
+    // =====================================================
+
+    function initMap(idx, target, mapElement, card) {
+
+        const key = `${target}-${idx}`;
+
+        if (maps[key]) {
+
+            setTimeout(() => {
+                maps[key].invalidateSize();
+            }, 100);
+
+            return;
         }
-      })
-      .addTo(map);
 
-    // Also allow click-to-set (reverse geocode)
-    map.on("click", async (ev) => {
-      try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${ev.latlng.lat}&lon=${ev.latlng.lng}`;
-        const res = await fetch(url, { headers: { "Accept-Language": "en" } });
-        const data = await res.json();
-        const addr = data.display_name || `${ev.latlng.lat.toFixed(5)}, ${ev.latlng.lng.toFixed(5)}`;
-        L.marker(ev.latlng).addTo(map);
-        const inputCls = target === "pickup" ? ".f-pickup-loc" : ".f-dropoff-loc";
-        const input = card.querySelector(inputCls);
-        if (input) {
-          input.value = addr;
-          input.dispatchEvent(new Event("change"));
+
+        // Default location: Iowa City, Iowa.
+        const map = L.map(mapElement).setView(
+            [41.6611, -91.5302],
+            10
+        );
+
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution: "&copy; OpenStreetMap contributors",
+                maxZoom: 18
+            }
+        ).addTo(map);
+
+
+        // Marker helper.
+        function setMarker(location, popupText) {
+
+            if (mapMarkers[key]) {
+                map.removeLayer(mapMarkers[key]);
+            }
+
+            mapMarkers[key] = L.marker(location)
+                .addTo(map);
+
+            if (popupText) {
+                mapMarkers[key].bindPopup(popupText);
+            }
+
         }
-      } catch (err) {
-        console.warn("Reverse geocode failed", err);
-      }
-    });
 
-    maps[key] = map;
-    // Leaflet needs a tick after becoming visible
-    setTimeout(() => map.invalidateSize(), 100);
-  }
 
-  // ---------- Collect runs data ----------
+        // Update corresponding address field.
+        function updateAddress(address) {
 
-  function collectRuns() {
-    const cards = runsContainer.querySelectorAll(".run-card");
-    const runs = [];
-    cards.forEach((card) => {
-      runs.push({
-        reservation_number: card.querySelector(".f-reservation")?.value || "",
-        date: card.querySelector(".f-date")?.value || "",
-        pickup_time: card.querySelector(".f-pickup-time")?.value || "",
-        passengers: card.querySelector(".f-passengers")?.value || "",
-        type: card.querySelector(".f-type")?.value || "",
-        pickup_location: card.querySelector(".f-pickup-loc")?.value || "",
-        dropoff_location: card.querySelector(".f-dropoff-loc")?.value || "",
-        loop_details: card.querySelector(".f-loop")?.value || "",
-        quoted_rate: null, // filled from pricing table
-      });
-    });
-    return runs;
-  }
+            const inputClass =
+                target === "pickup"
+                    ? ".f-pickup-loc"
+                    : ".f-dropoff-loc";
 
-  // ---------- Pricing table sync ----------
+            const input = card.querySelector(inputClass);
 
-  function syncPricing() {
-    const runs = collectRuns();
-    // Preserve existing rates by reservation number
-    const existingRates = {};
-    pricingBody.querySelectorAll("tr[data-res]").forEach((tr) => {
-      const res = tr.dataset.res;
-      const input = tr.querySelector(".rate-input");
-      if (res && input) existingRates[res] = input.value;
-    });
+            if (input) {
 
-    pricingBody.innerHTML = "";
+                input.value = address;
 
-    if (runs.length === 0) {
-      pricingBody.innerHTML = `<tr class="empty-row"><td colspan="5">Add runs in Section 2 to enter pricing</td></tr>`;
-      document.getElementById("run-count").textContent = "0";
-      document.getElementById("grand-total").textContent = "0.00";
-      return;
+                input.dispatchEvent(
+                    new Event("change", { bubbles: true })
+                );
+
+            }
+
+        }
+
+
+        // Address search geocoder.
+        const geocoder = L.Control.geocoder({
+
+            defaultMarkGeocode: false,
+
+            placeholder: "Search address...",
+
+            geocoder: L.Control.Geocoder.nominatim({
+
+                geocodingQueryParams: {
+
+                    countrycodes: "us",
+
+                    viewbox: "-96.7,40.3,-90.1,43.6",
+
+                    bounded: 0
+
+                }
+
+            })
+
+        });
+
+
+        geocoder.on("markgeocode", (event) => {
+
+            const result = event.geocode;
+
+            const center = result.center;
+
+            if (result.bbox) {
+                map.fitBounds(result.bbox);
+            } else {
+                map.setView(center, 15);
+            }
+
+            setMarker(center, result.name);
+
+            updateAddress(result.name);
+
+        });
+
+
+        geocoder.addTo(map);
+
+
+        // Click-to-select and reverse geocoding.
+        map.on("click", async (event) => {
+
+            const latitude = event.latlng.lat;
+            const longitude = event.latlng.lng;
+
+            setMarker(event.latlng);
+
+            try {
+
+                const url =
+                    "https://nominatim.openstreetmap.org/reverse" +
+                    `?format=json&lat=${latitude}&lon=${longitude}`;
+
+                const response = await fetch(url, {
+
+                    headers: {
+                        "Accept-Language": "en"
+                    }
+
+                });
+
+                if (!response.ok) {
+                    throw new Error("Reverse geocoding failed");
+                }
+
+                const data = await response.json();
+
+                const address =
+                    data.display_name ||
+                    `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+
+                updateAddress(address);
+
+            } catch (error) {
+
+                console.warn("Reverse geocoding failed:", error);
+
+                updateAddress(
+                    `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+                );
+
+            }
+
+        });
+
+
+        maps[key] = map;
+
+
+        // Allow Leaflet to calculate its dimensions
+        // after the previously hidden map becomes visible.
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 150);
+
     }
 
-    let grand = 0;
-    runs.forEach((r) => {
-      const rateVal = existingRates[r.reservation_number] ?? "";
-      const tr = document.createElement("tr");
-      tr.dataset.res = r.reservation_number;
-      const route = `${r.pickup_location || "…"} → ${r.dropoff_location || "…"}`;
-      tr.innerHTML = `
-        <td>${escapeHtml(r.reservation_number)}</td>
-        <td>${escapeHtml(r.date)}</td>
-        <td>${escapeHtml(r.type)}</td>
-        <td>${escapeHtml(route)}</td>
-        <td>
-          <input type="number" class="rate-input" step="0.01" min="0"
-                 placeholder="0.00" value="${escapeHtml(rateVal)}"
-                 data-res="${escapeHtml(r.reservation_number)}" />
-        </td>
-      `;
-      pricingBody.appendChild(tr);
 
-      const num = parseFloat(rateVal);
-      if (!isNaN(num)) grand += num;
-    });
+    // =====================================================
+    // COLLECT SERVICE RUNS
+    // =====================================================
 
-    document.getElementById("run-count").textContent = String(runs.length);
-    document.getElementById("grand-total").textContent = grand.toFixed(2);
+    function collectRuns() {
 
-    // Re-bind rate inputs
-    pricingBody.querySelectorAll(".rate-input").forEach((input) => {
-      input.addEventListener("input", recalcTotal);
-      input.addEventListener("change", recalcTotal);
-    });
-  }
+        const cards = getRunCards();
 
-  function recalcTotal() {
-    let grand = 0;
-    pricingBody.querySelectorAll(".rate-input").forEach((input) => {
-      const n = parseFloat(input.value);
-      if (!isNaN(n)) grand += n;
-    });
-    document.getElementById("grand-total").textContent = grand.toFixed(2);
-  }
+        const runs = [];
 
-  // ---------- Form submit ----------
+        cards.forEach((card) => {
 
-  form.addEventListener("submit", (e) => {
-    const runs = collectRuns();
+            runs.push({
 
-    // Attach quoted rates from pricing table
-    const rateMap = {};
-    pricingBody.querySelectorAll(".rate-input").forEach((input) => {
-      rateMap[input.dataset.res] = input.value;
-    });
-    runs.forEach((r) => {
-      r.quoted_rate = rateMap[r.reservation_number] || null;
-    });
+                reservation_number:
+                    card.querySelector(".f-reservation")?.value || "",
 
-    if (runs.length === 0) {
-      e.preventDefault();
-      alert("Please add at least one run in Section 2 (Service Schedule).");
-      return;
+                date:
+                    card.querySelector(".f-date")?.value || "",
+
+                pickup_time:
+                    card.querySelector(".f-pickup-time")?.value || "",
+
+                passengers:
+                    card.querySelector(".f-passengers")?.value || "",
+
+                type:
+                    card.querySelector(".f-type")?.value || "",
+
+                pickup_location:
+                    card.querySelector(".f-pickup-loc")?.value || "",
+
+                dropoff_location:
+                    card.querySelector(".f-dropoff-loc")?.value || "",
+
+                loop_details:
+                    card.querySelector(".f-loop")?.value || "",
+
+                quoted_rate: null
+
+            });
+
+        });
+
+        return runs;
+
     }
 
-    // Basic validation
-    for (const r of runs) {
-      if (!r.date || !r.pickup_time || !r.type || !r.pickup_location || !r.dropoff_location) {
-        e.preventDefault();
-        alert("Please complete all required fields (date, time, type, pickup & drop-off) for every run.");
-        return;
-      }
+
+    // =====================================================
+    // PRICING TABLE
+    // =====================================================
+
+    function syncPricing() {
+
+        const runs = collectRuns();
+
+        // Preserve existing rates.
+        const existingRates = {};
+
+        pricingBody.querySelectorAll(
+            "tr[data-res]"
+        ).forEach((row) => {
+
+            const reservation = row.dataset.res;
+
+            const input = row.querySelector(".rate-input");
+
+            if (reservation && input) {
+                existingRates[reservation] = input.value;
+            }
+
+        });
+
+
+        pricingBody.innerHTML = "";
+
+
+        // Empty state.
+        if (runs.length === 0) {
+
+            pricingBody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <div class="empty-pricing">
+                            <i class="bi bi-receipt"></i>
+                            <span>No scheduled runs yet.</span>
+                            <small>
+                                Add service runs above to begin pricing.
+                            </small>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById("run-count").textContent = "0";
+
+            document.getElementById("grand-total").textContent = "0.00";
+
+            return;
+
+        }
+
+
+        let grandTotal = 0;
+
+
+        runs.forEach((run) => {
+
+            const reservation = run.reservation_number;
+
+            const rateValue =
+                existingRates[reservation] ?? "";
+
+            const row = document.createElement("tr");
+
+            row.dataset.res = reservation;
+
+            const route =
+                `${run.pickup_location || "…"} → ${run.dropoff_location || "…"}`;
+
+
+            row.innerHTML = `
+
+                <td>${escapeHtml(reservation)}</td>
+
+                <td>${escapeHtml(run.date)}</td>
+
+                <td>${escapeHtml(run.type)}</td>
+
+                <td>${escapeHtml(route)}</td>
+
+                <td>
+
+                    <input
+                        type="number"
+                        class="rate-input"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value="${escapeHtml(rateValue)}"
+                        data-res="${escapeHtml(reservation)}"
+                        aria-label="Quoted rate for reservation ${escapeHtml(reservation)}"
+                    />
+
+                </td>
+
+            `;
+
+
+            pricingBody.appendChild(row);
+
+
+            const numericRate = parseFloat(rateValue);
+
+            if (!isNaN(numericRate)) {
+                grandTotal += numericRate;
+            }
+
+        });
+
+
+        document.getElementById("run-count").textContent =
+            String(runs.length);
+
+        document.getElementById("grand-total").textContent =
+            grandTotal.toFixed(2);
+
+
+        // Rebind rate inputs.
+        pricingBody.querySelectorAll(
+            ".rate-input"
+        ).forEach((input) => {
+
+            input.addEventListener("input", recalcTotal);
+
+            input.addEventListener("change", recalcTotal);
+
+        });
+
     }
 
-    runsJsonInput.value = JSON.stringify(runs);
-    // Allow normal form submit → PDF download
-  });
 
-  // ---------- Init ----------
+    // =====================================================
+    // RECALCULATE GRAND TOTAL
+    // =====================================================
 
-  document.getElementById("btn-add-run").addEventListener("click", () => addRun());
+    function recalcTotal() {
 
-  // Start with one empty run
-  addRun();
+        let grandTotal = 0;
+
+        pricingBody.querySelectorAll(
+            ".rate-input"
+        ).forEach((input) => {
+
+            const amount = parseFloat(input.value);
+
+            if (!isNaN(amount)) {
+                grandTotal += amount;
+            }
+
+        });
+
+
+        document.getElementById("grand-total").textContent =
+            grandTotal.toFixed(2);
+
+    }
+
+
+    // =====================================================
+    // FORM SUBMISSION
+    // =====================================================
+
+    form.addEventListener("submit", (event) => {
+
+        const runs = collectRuns();
+
+
+        // Collect rates.
+        const rateMap = {};
+
+        pricingBody.querySelectorAll(
+            ".rate-input"
+        ).forEach((input) => {
+
+            rateMap[input.dataset.res] = input.value;
+
+        });
+
+
+        runs.forEach((run) => {
+
+            run.quoted_rate =
+                rateMap[run.reservation_number] || null;
+
+        });
+
+
+        // Require at least one service run.
+        if (runs.length === 0) {
+
+            event.preventDefault();
+
+            alert(
+                "Please add at least one run in Section 2 (Service Schedule)."
+            );
+
+            return;
+
+        }
+
+
+        // Validate individual service runs.
+        for (const run of runs) {
+
+            if (
+                !run.date ||
+                !run.pickup_time ||
+                !run.type ||
+                !run.pickup_location ||
+                !run.dropoff_location
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please complete all required fields " +
+                    "(date, time, type, pickup and drop-off) " +
+                    "for every run."
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        // Store the completed quotation data.
+        runsJsonInput.value = JSON.stringify(runs);
+
+        // Normal Flask form submission continues.
+    });
+
+
+    // =====================================================
+    // INITIALIZATION
+    // =====================================================
+
+    document.getElementById("btn-add-run").addEventListener(
+        "click",
+        () => addRun()
+    );
+
+
+    // Start with one empty service run.
+    addRun();
+
+
 })();

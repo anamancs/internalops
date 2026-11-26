@@ -1,136 +1,861 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACS Internal Portal | Anaman Concierge Services</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <!-- Standard Favicon -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}?v=2">
-    <!-- Mobile Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}?v=2">
-    <!-- Mobile Theme Color (Makes the browser address bar match your brand) -->
-    <meta name="theme-color" content="#1a202c">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <title>ACS Operations Center | Anaman Concierge Services</title>
+
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='favicon.png') }}">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- DM Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
     <style>
         :root {
-            --acs-dark: #1a202c; /* Sleek dark navy/charcoal */
-            --acs-primary: #0d6efd;
+            --acs-navy: #172337;
+            --acs-blue: #2864dc;
+            --acs-blue-light: #edf3ff;
+            --acs-teal: #0b8f91;
+            --acs-bg: #f2f5fa;
+            --acs-text: #263449;
+            --acs-muted: #7b8798;
+            --acs-line: #e5eaf1;
+            --acs-white: #ffffff;
         }
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-        .hero {
-            background: linear-gradient(135deg, var(--acs-dark) 0%, #2d3748 100%);
-            color: white;
-            padding: 5rem 2rem;
-            text-align: center;
-            border-bottom: 4px solid var(--acs-primary);
-        }
-        .hero h1 { font-weight: 800; letter-spacing: -1px; }
-        .hero p.lead { font-weight: 300; opacity: 0.9; font-size: 1.2rem; }
 
-        .app-card {
-            transition: all 0.3s ease;
-            height: 100%;
-            border: none;
-            border-radius: 16px;
-            background: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        * {
+            box-sizing: border-box;
         }
-        .app-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        body {
+            margin: 0;
+            background: var(--acs-bg);
+            color: var(--acs-text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
         }
-        .icon-box {
-            font-size: 3.5rem;
-            color: var(--acs-primary);
-            margin-bottom: 1.5rem;
-            background: #eef2ff;
-            width: 90px;
-            height: 90px;
+
+        a {
+            text-decoration: none;
+        }
+
+        /* =========================
+           NAVBAR
+        ========================= */
+
+        .navbar {
+            background: var(--acs-navy);
+            min-height: 68px;
+            padding: 12px 0;
+            box-shadow: 0 3px 12px rgba(23, 35, 55, 0.12);
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            width: calc(100% - 40px);
+            margin: auto;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #fff !important;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            margin: 0;
+        }
+
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.12);
+            color: #8db7ff;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            margin: 0 auto 1.5rem auto;
+            font-size: 20px;
         }
-        .card-title { font-weight: 700; color: var(--acs-dark); font-size: 1.3rem; }
-        .card-text { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
-        .badge-launch { font-size: 0.85rem; padding: 0.5rem 1.5rem; border-radius: 50px; font-weight: 600; }
+
+        .navbar-status {
+            color: #b9c5d5;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .btn-admin-login {
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-admin-login:hover {
+            background: #fff;
+            color: var(--acs-navy);
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            border: 1px solid #dc3545;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #bb2d3b;
+            border-color: #bb2d3b;
+            color: #fff;
+        }
+
+        /* =========================
+           HERO SECTION
+        ========================= */
+
+        .hero {
+            background:
+                radial-gradient(circle at 85% 20%, rgba(40,100,220,0.22), transparent 30%),
+                linear-gradient(120deg, #172337 0%, #233750 100%);
+            color: #fff;
+            padding: 55px 20px 52px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,255,255,0.09);
+            border: 1px solid rgba(255,255,255,0.13);
+            color: #c8d9f3;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            margin-bottom: 17px;
+        }
+
+        .hero h1 {
+            font-size: clamp(27px, 4vw, 39px);
+            font-weight: 800;
+            letter-spacing: -1.1px;
+            margin-bottom: 12px;
+        }
+
+        .hero-description {
+            color: #c1cddd;
+            font-size: 14px;
+            max-width: 620px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .hero-tagline {
+            color: #8fb6f5;
+            font-size: 12px;
+            font-weight: 600;
+            font-style: italic;
+            margin: 0;
+        }
+
+        .hero-divider {
+            width: 48px;
+            height: 4px;
+            background: var(--acs-teal);
+            border-radius: 5px;
+            margin-top: 25px;
+        }
+
+        /* =========================
+           MAIN CONTENT
+        ========================= */
+
+        .page-container {
+            max-width: 1200px;
+            width: calc(100% - 40px);
+            margin: 38px auto 60px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 17px;
+            gap: 12px;
+        }
+
+        .section-title {
+            color: var(--acs-navy);
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            color: var(--acs-muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .section-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            padding: 6px 11px;
+            white-space: nowrap;
+        }
+
+        .public-label {
+            background: #eaf1ff;
+            color: var(--acs-blue);
+        }
+
+        .admin-label {
+            background: #e7f5f4;
+            color: var(--acs-teal);
+        }
+
+        .section-divider {
+            border: 0;
+            border-top: 1px solid var(--acs-line);
+            margin: 37px 0;
+            opacity: 1;
+        }
+
+        /* =========================
+           APPLICATION CARDS
+        ========================= */
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .app-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            height: 100%;
+            min-height: 205px;
+            background: #fff;
+            border: 1px solid var(--acs-line);
+            border-radius: 13px;
+            padding: 21px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            border-color: #cbd9f1;
+            box-shadow: 0 12px 25px rgba(23, 35, 55, 0.08);
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--acs-blue-light);
+            color: var(--acs-blue);
+            font-size: 22px;
+            margin-bottom: 19px;
+            transition: 0.2s;
+        }
+
+        .app-card:hover .app-icon {
+            background: var(--acs-blue);
+            color: #fff;
+        }
+
+        .app-icon.admin-icon {
+            background: #e8f5f4;
+            color: var(--acs-teal);
+        }
+
+        .admin-card:hover .admin-icon {
+            background: var(--acs-teal);
+            color: #fff;
+        }
+
+        .app-title {
+            color: var(--acs-navy);
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 7px;
+            line-height: 1.4;
+        }
+
+        .app-description {
+            color: var(--acs-muted);
+            font-size: 11px;
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        .app-arrow {
+            position: absolute;
+            right: 17px;
+            bottom: 17px;
+            color: #b1bdcc;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .app-card:hover .app-arrow {
+            color: var(--acs-blue);
+            transform: translateX(3px);
+        }
+
+        /* =========================
+           ADMIN ACCESS
+        ========================= */
+
+        .admin-card {
+            min-height: 190px;
+        }
+
+        .admin-card.locked {
+            background: #fafbfd;
+        }
+
+        .admin-card.locked:hover {
+            border-color: #d6e0eb;
+        }
+
+        .access-badge {
+            position: absolute;
+            top: 16px;
+            right: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #b45b60;
+            background: #fff0f1;
+            border: 1px solid #f7d9dc;
+            border-radius: 20px;
+            padding: 5px 8px;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .access-badge.unlocked {
+            color: #087c70;
+            background: #e7f5f2;
+            border-color: #d2ebe5;
+        }
+
+        .admin-card .app-arrow {
+            color: #aeb8c4;
+        }
+
+        .admin-card:hover .app-arrow {
+            color: var(--acs-teal);
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            background: #fff;
+            border-top: 1px solid var(--acs-line);
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .footer-company {
+            color: var(--acs-navy);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .footer-detail {
+            color: var(--acs-muted);
+            font-size: 10px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+            .app-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 767px) {
+            .navbar-container,
+            .page-container {
+                width: calc(100% - 30px);
+            }
+
+            .hero {
+                padding: 42px 18px;
+            }
+
+            .hero h1 {
+                font-size: 29px;
+            }
+
+            .app-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .admin-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .app-card {
+                min-height: 195px;
+                padding: 17px 14px;
+            }
+
+            .section-divider {
+                margin: 29px 0;
+            }
+
+            .page-container {
+                margin-top: 29px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .app-grid,
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-card {
+                min-height: 150px;
+            }
+
+            .app-icon {
+                margin-bottom: 13px;
+            }
+
+            .section-heading {
+                align-items: flex-start;
+            }
+
+            .navbar-brand {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-    <!-- Corporate Hero Section -->
-    <div class="hero">
-        <i class="bi bi-shield-check mb-3" style="font-size: 3rem; color: #60a5fa;"></i>
-        <h1 class="display-5">Anaman Concierge Services</h1>
-        <p class="lead mt-3">"You don't wait on us—we wait on you."</p>
-        <p class="mt-4 text-white-50">Internal Staff Operations Portal</p>
-    </div>
+    <!-- =========================
+         NAVIGATION
+    ========================== -->
 
-    <!-- App Cards -->
-    <div class="container py-5">
-        <div class="row g-4 justify-content-center">
+    <nav class="navbar navbar-dark">
+        <div class="navbar-container d-flex align-items-center justify-content-between">
 
-            <!-- Card 1: Fleet Cost Tracking -->
-            <div class="col-md-4">
-                <a href="/fleet" class="text-decoration-none">
-                    <div class="card app-card p-4 text-center h-100">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="bi bi-speedometer2"></i></div>
-                            <h4 class="card-title">Fleet Cost Tracking</h4>
-                            <p class="card-text mt-3">Monitor fuel efficiency, driver wages, and real-time fleet availability across Airport Shuttles, Limos, and Private Cars.</p>
-                            <div class="mt-4">
-                                <span class="badge bg-primary badge-launch">Launch Dashboard <i class="bi bi-arrow-right ms-1"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
+            <a href="/" class="navbar-brand">
+                <span class="brand-mark">
+                    <i class="bi bi-shield-check"></i>
+                </span>
+                <span>ACS INTERNAL PORTAL</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+
+                {% if current_user.is_authenticated %}
+
+                    <span class="navbar-status d-none d-sm-inline">
+                        <i class="bi bi-circle-fill text-success me-1"
+                           style="font-size: 7px;"></i>
+                        Administrator Active
+                    </span>
+
+                    <a href="/auth/logout" class="btn-logout">
+                        <i class="bi bi-box-arrow-right me-1"></i>
+                        Logout
+                    </a>
+
+                {% else %}
+
+                    <a href="/auth/login" class="btn-admin-login">
+                        <i class="bi bi-lock me-1"></i>
+                        Admin Login
+                    </a>
+
+                {% endif %}
+
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- =========================
+         HERO
+    ========================== -->
+
+    <section class="hero">
+        <div class="hero-inner">
+
+            <div class="hero-eyebrow">
+                <i class="bi bi-grid-1x2-fill"></i>
+                Internal Staff Operations Portal
             </div>
 
-            <!-- Card 2: ACS Quote Generator -->
-            <div class="col-md-4">
-                <a href="/quotation/" class="text-decoration-none">
-                    <div class="card app-card p-4 text-center h-100">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="bi bi-receipt"></i></div>
-                            <h4 class="card-title">ACS Quote Generator</h4>
-                            <p class="card-text mt-3">Instantly generate customized quotes for clients seeking long-distance airport transfers, hourly rates, and corporate accounts.</p>
-                            <div class="mt-4">
-                                <span class="badge bg-primary badge-launch">Launch Generator</span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
+            <h1>Welcome to the ACS Operations Center</h1>
 
-            <!-- Card 3: Hotel Shuttle Service -->
-            <div class="col-md-4">
-                <a href="#" class="text-decoration-none" onclick="alert('The Hotel Shuttle Service app is currently in development.'); return false;">
-                    <div class="card app-card p-4 text-center h-100">
-                        <div class="card-body">
-                            <div class="icon-box"><i class="bi bi-calendar-check"></i></div>
-                            <h4 class="card-title">Hotel - UIHC Shuttle Service</h4>
-                            <p class="card-text mt-3">Manage dispatch routing, daily schedules, and passenger manifests for hotel to UIHC transfers in Iowa City and surrounding areas.</p>
-                            <div class="mt-4">
-                                <span class="badge bg-secondary badge-launch">Coming Soon</span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
+            <p class="hero-description">
+                Your central workspace for accessing ACS applications,
+                managing operational activities, and supporting daily
+                transportation services.
+            </p>
+
+            <p class="hero-tagline">
+                "You don't wait on us — we wait on you."
+            </p>
+
+            <div class="hero-divider"></div>
 
         </div>
-    </div>
+    </section>
 
-    <footer class="text-center py-4 mt-5 text-muted border-top bg-white">
-        <p class="mb-0">&copy; 2026 Anaman Concierge Services, LLC. Serving Iowa City, Cedar Rapids, and surrounding areas.</p>
-        <small>Internal Systems Support</small>
+
+    <!-- =========================
+         APPLICATIONS
+    ========================== -->
+
+    <main class="page-container">
+
+        <!-- PUBLIC APPLICATIONS -->
+
+        <section>
+
+            <div class="section-heading">
+
+                <div>
+                    <h2 class="section-title">
+                        <i class="bi bi-grid me-2"
+                           style="color: var(--acs-blue);"></i>
+                        Public Operations & Staff Tools
+                    </h2>
+
+                    <p class="section-subtitle">
+                        Applications available to staff and authorized users.
+                    </p>
+                </div>
+
+                <span class="section-label public-label">
+                    GET THINGS DONE <!-- 05 Applications -->
+                </span>
+
+            </div>
+
+
+            <div class="app-grid">
+
+                <!-- Submit Receipt -->
+
+                <a href="/receipts/upload" class="app-card">
+
+                    <div class="app-icon">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </div>
+
+                    <h3 class="app-title">Submit Receipt</h3>
+
+                    <p class="app-description">
+                        Upload fuel, maintenance, and other driver expense receipts.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- Track Submissions -->
+
+                <a href="/receipts/track" class="app-card">
+
+                    <div class="app-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+
+                    <h3 class="app-title">Track Submissions</h3>
+
+                    <p class="app-description">
+                        Check the status of submitted reimbursement claims.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- Dispatch Copilot -->
+
+                <a href="/chatbot/" class="app-card">
+
+                    <div class="app-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+
+                    <h3 class="app-title">Dispatch Copilot</h3>
+
+                    <p class="app-description">
+                        AI-powered assistant for transportation pricing and quotes.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- Quote Generator -->
+
+                <a href="/quotation/" class="app-card">
+
+                    <div class="app-icon">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+
+                    <h3 class="app-title">Quote Generator</h3>
+
+                    <p class="app-description">
+                        Generate and prepare PDF quotations for clients.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- UI Access -->
+
+                <a href="/directory/" class="app-card">
+
+                    <div class="app-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+
+                    <h3 class="app-title">UI Access Directory</h3>
+
+                    <p class="app-description">
+                        Access University of Iowa department contacts and booking metrics.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <hr class="section-divider">
+
+
+        <!-- ADMIN APPLICATIONS -->
+
+        <section>
+
+            <div class="section-heading">
+
+                <div>
+                    <h2 class="section-title">
+                        <i class="bi bi-shield-lock me-2"
+                           style="color: var(--acs-teal);"></i>
+                        Administrative Workspace <!--Applications   -->
+                    </h2>
+
+                    <p class="section-subtitle">
+                        Restricted tools for ACS administrators and management.
+                    </p>
+                </div>
+
+                <span class="section-label admin-label">
+                    REQUIRES ADMIN ACCESS<!--03 Applications-->
+                </span>
+
+            </div>
+
+
+            <div class="admin-grid">
+
+
+                <!-- Fleet Cost Tracking -->
+
+                <a href="{% if current_user.is_authenticated %}/fleet/{% else %}/auth/login?next=/fleet/{% endif %}"
+                   class="app-card admin-card {% if not current_user.is_authenticated %}locked{% endif %}">
+
+                    {% if current_user.is_authenticated %}
+                        <span class="access-badge unlocked">
+                            <i class="bi bi-unlock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% else %}
+                        <span class="access-badge">
+                            <i class="bi bi-lock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% endif %}
+
+                    <div class="app-icon admin-icon">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+
+                    <h3 class="app-title">Fleet Cost Tracking</h3>
+
+                    <p class="app-description">
+                        Monitor fuel expenses, driver wages, and vehicle operating status.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- Receipt Approvals -->
+
+                <a href="{% if current_user.is_authenticated %}/receipts/admin/{% else %}/auth/login?next=/receipts/admin/{% endif %}"
+                   class="app-card admin-card {% if not current_user.is_authenticated %}locked{% endif %}">
+
+                    {% if current_user.is_authenticated %}
+                        <span class="access-badge unlocked">
+                            <i class="bi bi-unlock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% else %}
+                        <span class="access-badge">
+                            <i class="bi bi-lock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% endif %}
+
+                    <div class="app-icon admin-icon">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+
+                    <h3 class="app-title">Receipt Approvals</h3>
+
+                    <p class="app-description">
+                        Review driver expense submissions and manage reimbursement approvals.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+                <!-- Financial Bottomline -->
+
+                <a href="{% if current_user.is_authenticated %}/finance/{% else %}/auth/login?next=/finance/{% endif %}"
+                   class="app-card admin-card {% if not current_user.is_authenticated %}locked{% endif %}">
+
+                    {% if current_user.is_authenticated %}
+                        <span class="access-badge unlocked">
+                            <i class="bi bi-unlock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% else %}
+                        <span class="access-badge">
+                            <i class="bi bi-lock-fill"></i>
+                            ADMIN
+                        </span>
+                    {% endif %}
+
+                    <div class="app-icon admin-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+
+                    <h3 class="app-title">Financial Bottomline</h3>
+
+                    <p class="app-description">
+                        Review profit and loss, revenue, margins, and operational expenses.
+                    </p>
+
+                    <i class="bi bi-arrow-up-right app-arrow"></i>
+
+                </a>
+
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <p class="footer-company">
+            &copy; {{ now().year }} Anaman Concierge Services, LLC.
+        </p>
+
+        <p class="footer-detail">
+            Serving Iowa City, Cedar Rapids, and surrounding areas.
+            <br>
+            Internal Systems Support
+        </p>
+
     </footer>
+
 
 </body>
 </html>

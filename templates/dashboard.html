@@ -1,324 +1,2092 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Cost Tracking | ACS Portal</title>
-    <!-- Bootstrap & Icons -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <title>ACS Fleet Analytics</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
     <style>
         :root {
-            --acs-dark: #1a202c;
-            --acs-primary: #4A7EBB;
+            --acs-dark: #172337;
+            --acs-ink: #172b4d;
+            --acs-muted: #64748b;
+            --acs-blue: #356294;
+            --acs-blue-light: #4a7ebb;
+            --acs-teal: #087f8c;
+            --acs-teal-dark: #06636d;
+            --acs-line: #e6edf3;
+            --acs-bg: #f4f7fb;
         }
-        body { background-color: #f8f9fa; }
 
-        /* Metric Cards */
-        .metric-card {
-            background-color: var(--acs-primary);
+        body {
+            background: var(--acs-bg);
+            color: var(--acs-ink);
+            font-family: Arial, sans-serif;
+        }
+
+
+
+
+        /* STANDARD ACS NAVBAR */
+
+        .topbar {
+            min-height: 68px;
+            background: #172337;
+            box-shadow: 0 5px 25px rgba(16, 26, 48, .12);
+        }
+
+        .topbar-inner {
+            width: min(100% - 40px, 1160px);
+            min-height: 68px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .topbar {
+            margin-bottom: 28px;
+        }
+
+        .dashboard-nav {
+            margin-top: 0;
+        }
+
+        .portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 9px;
+            color: rgba(255,255,255,.88);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .portal-link:hover {
             color: white;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            height: 100%;
+            background: rgba(255,255,255,.09);
         }
-        .metric-card h5 { font-size: 1.1rem; font-weight: 500; margin-bottom: 15px; }
-        .metric-card h2 { font-size: 2rem; font-weight: 700; margin: 0; }
 
-        /* Layout Cards */
-        .filter-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .fleet-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%; }
-        .vehicle-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .vehicle-item:last-child { border-bottom: none; }
-        .form-switch .form-check-input { cursor: pointer; transform: scale(1.2); margin-top: 0.25rem; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+        }
 
-        /* 📱 MOBILE OPTIMIZATIONS */
-        @media (max-width: 768px) {
-            .metric-card {
-                padding: 20px 15px;
-                margin-bottom: 10px;
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2864dc, #0b8f91);
+            color: white;
+            font-size: 17px;
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255,255,255,.58);
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .data-status {
+            color: rgba(255,255,255,.65);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        @media(max-width:480px) {
+            .topbar-inner {
+                width: calc(100% - 28px);
+                min-height: 62px;
             }
-            .metric-card h5 { font-size: 1rem; }
-            .metric-card h2 { font-size: 1.8rem; }
-            .filter-section { padding: 15px; }
-            .fleet-card { padding: 15px; }
-            .navbar-brand { font-size: 1.1rem; }
-            #dataStatus { display: none; /* Hide record count on phones to save space */ }
-            #fuelNote { font-size: 0.75rem !important; }
+
+            .topbar { min-height: 62px; }
+            .brand { font-size: 12px; gap: 8px; }
+            .brand-mark { width: 33px; height: 33px; }
+            .brand small { font-size: 9px; }
+            .data-status { display: none; }
+        }
+
+
+
+        /* TOP NAVIGATION 
+
+        .navbar {
+            background: var(--acs-dark);
+            min-height: 62px;
+        }
+
+        .navbar-brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+        } */
+         
+
+        /* DASHBOARD NAVIGATION */
+
+        .dashboard-nav {
+            border-bottom: 1px solid #dce5ed;
+            gap: 10px;
+            padding-bottom: 0;
+        }
+
+        .dashboard-nav .nav-link {
+            padding: 15px 23px;
+            font-size: 1rem;
+            font-weight: 750;
+            color: #64748b;
+            border: 1px solid transparent;
+            border-radius: 12px 12px 0 0;
+            transition: all .2s ease;
+        }
+
+        .dashboard-nav .nav-link:hover {
+            background: #edf2f7;
+            color: var(--acs-ink);
+        }
+
+        .dashboard-nav #vehicle-tab.active {
+            color: white;
+            background: var(--acs-teal);
+            border-color: var(--acs-teal);
+            box-shadow: 0 5px 14px rgba(8,127,140,.2);
+        }
+
+        .dashboard-nav #service-tab.active {
+            color: white;
+            background: var(--acs-blue);
+            border-color: var(--acs-blue);
+            box-shadow: 0 5px 14px rgba(53,98,148,.2);
+        } 
+
+        /* SHARED PANELS */
+
+        .service-panel {
+            background: #fff;
+            border: 1px solid var(--acs-line);
+            border-radius: 15px;
+            padding: 21px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+        }
+
+        /* SERVICE PROFITABILITY HERO */
+
+        .service-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 27px 30px;
+            margin-bottom: 20px;
+            border-radius: 16px;
+            color: white;
+            background: linear-gradient(115deg, #172b49 0%, #28517e 65%, #477db2 100%);
+            box-shadow: 0 8px 22px rgba(35,73,113,.13);
+        }
+
+        .service-hero::after {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border: 35px solid rgba(255,255,255,.055);
+            border-radius: 50%;
+            right: 90px;
+            top: -115px;
+        }
+
+        .service-hero .eyebrow {
+            font-size: .76rem;
+            letter-spacing: .15em;
+            font-weight: 800;
+            color: #c7d9ed;
+            margin-bottom: 8px;
+        }
+
+        .service-hero h3 {
+            font-weight: 800;
+            margin-bottom: 5px;
+            letter-spacing: -.4px;
+        }
+
+        .service-hero p {
+            color: rgba(255,255,255,.76);
+            margin: 0;
+        }
+
+        .service-hero-icon {
+            position: relative;
+            z-index: 1;
+            width: 65px;
+            height: 65px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: rgba(255,255,255,.15);
+            font-size: 2rem;
+        }
+
+        /* SERVICE FILTERS */
+
+        .service-filter-panel {
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 14px;
+            padding: 19px;
+            margin-bottom: 17px;
+            box-shadow: 0 4px 15px rgba(23,43,77,.04);
+        }
+
+        .service-filter-panel .form-label {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            font-weight: 750;
+            color: var(--acs-muted);
+        }
+
+        .service-filter-panel .form-select {
+            min-height: 45px;
+            border-color: #dbe4ec;
+            border-radius: 8px;
+        }
+
+        .upload-btn {
+            min-height: 45px;
+            font-weight: 700;
+            border-radius: 8px;
+            border-color: var(--acs-blue);
+            color: var(--acs-blue);
+        }
+
+        .upload-btn:hover {
+            background: var(--acs-blue);
+            color: white;
+        }
+
+        /* GPS CORRECTION NOTICE */
+
+        .correction-notice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eaf4fc;
+            color: #28517e;
+            border: 1px solid #d2e6f6;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: .84rem;
+            margin-bottom: 20px;
+        }
+
+        /* SERVICE KPI CARDS */
+
+        .service-kpi {
+            position: relative;
+            overflow: hidden;
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 15px;
+            padding: 21px;
+            height: 100%;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .service-kpi:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 20px rgba(23,43,77,.09);
+        }
+
+        .service-kpi::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: var(--kpi-color);
+        }
+
+        .service-kpi .kpi-icon {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            background: var(--kpi-tint);
+            color: var(--kpi-color);
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+        }
+
+        .service-kpi .kpi-label {
+            color: var(--acs-muted);
+            font-weight: 700;
+            font-size: .84rem;
+            margin-bottom: 5px;
+        }
+
+        .service-kpi .kpi-value {
+            font-size: 2rem;
+            line-height: 1.2;
+            font-weight: 850;
+            color: var(--acs-ink);
+            letter-spacing: -.7px;
+        }
+
+        .service-kpi .kpi-note {
+            font-size: .77rem;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        /* CHART PANEL */
+
+        .service-chart-panel {
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 15px;
+            padding: 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 17px;
+        }
+
+        .section-heading h5 {
+            font-weight: 800;
+            font-size: 1rem;
+            margin: 0;
+            color: var(--acs-ink);
+        }
+
+        .section-heading p {
+            font-size: .81rem;
+            color: var(--acs-muted);
+            margin: 5px 0 0;
+        }
+
+        .chart-wrap {
+            height: 290px;
+            position: relative;
+        }
+
+        /* FLEET MANAGEMENT */
+
+        .fleet-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 25px 0 15px;
+        }
+
+        .fleet-heading h5 {
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .fleet-heading p {
+            color: var(--acs-muted);
+            font-size: .82rem;
+            margin: 4px 0 0;
+        }
+
+        .fleet-card {
+            height: 100%;
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 14px;
+            padding: 19px;
+            box-shadow: 0 4px 14px rgba(23,43,77,.04);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .fleet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(23,43,77,.08);
+        }
+
+        .fleet-card h6 {
+            color: var(--acs-blue);
+            font-weight: 800;
+            font-size: .92rem;
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--acs-line);
+        }
+
+        .vehicle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #edf2f6;
+        }
+
+        .vehicle-item:last-child {
+            border-bottom: none;
+        }
+
+        .vehicle-item .vehicle-name {
+            font-weight: 650;
+            font-size: .84rem;
+            color: var(--acs-ink);
+        }
+
+        .vehicle-item .badge {
+            font-size: .67rem;
+            padding: 5px 8px;
+            border-radius: 20px;
+        }
+
+        .vehicle-item .form-check-input {
+            cursor: pointer;
+            width: 2.3em;
+            height: 1.2em;
+        }
+
+        /* VEHICLE EFFICIENCY DASHBOARD */
+
+        #vehicle-pane {
+            padding-top: 2px;
+        }
+
+        .gps-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            padding: 24px 26px;
+            margin-bottom: 18px;
+            border-radius: 16px;
+            color: #fff;
+            background: linear-gradient(120deg, #123b50 0%, #087f8c 65%, #12a6a0 100%);
+            box-shadow: 0 8px 22px rgba(8,85,99,.14);
+        }
+
+        .gps-hero h3 {
+            font-weight: 800;
+            margin: 0 0 5px;
+        }
+
+        .gps-hero p {
+            margin: 0;
+            color: rgba(255,255,255,.76);
+        }
+
+        .gps-hero-icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: rgba(255,255,255,.14);
+            font-size: 1.7rem;
+        }
+
+        .gps-filter-panel, .gps-panel {
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+        }
+
+        .gps-filter-panel {
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .gps-filter-panel .form-label {
+            font-size: .76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--acs-muted);
+        }
+
+        .gps-filter-panel .form-select {
+            min-height: 44px;
+            border-color: #dbe4ec;
+        }
+
+        #syncGpsBtn {
+            min-height: 44px;
+            background: var(--acs-teal);
+            border-color: var(--acs-teal);
+            font-weight: 700;
+        }
+
+        #syncGpsBtn:hover {
+            background: var(--acs-teal-dark);
+        }
+
+        .gps-kpi {
+            height: 100%;
+            padding: 19px;
+            border: 1px solid var(--acs-line);
+            border-radius: 14px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gps-kpi:after {
+            content: "";
+            position: absolute;
+            width: 5px;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: var(--kpi-color);
+        }
+
+        .gps-kpi .kpi-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: var(--kpi-tint);
+            color: var(--kpi-color);
+            font-size: 1.05rem;
+        }
+
+        .gps-kpi .kpi-label {
+            color: var(--acs-muted);
+            font-size: .82rem;
+            font-weight: 650;
+            margin: 12px 0 4px;
+        }
+
+        .gps-kpi .kpi-value {
+            color: var(--acs-ink);
+            font-size: 1.85rem;
+            font-weight: 800;
+        }
+
+        .gps-kpi .kpi-note {
+            color: #94a3b8;
+            font-size: .75rem;
+            margin-top: 5px;
+        }
+
+        .gps-panel {
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+
+        .gps-panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .gps-panel-heading h5 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .gps-panel-heading p {
+            margin: 4px 0 0;
+            color: var(--acs-muted);
+            font-size: .82rem;
+        }
+
+        .gps-chart-wrap {
+            height: 260px;
+            position: relative;
+        }
+
+        .gps-table {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .gps-table thead th {
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 13px 12px;
+            background: #f7fafc;
+            border-bottom: 1px solid var(--acs-line);
+        }
+
+        .gps-table tbody td {
+            padding: 14px 12px;
+            border-color: #edf2f6;
+            vertical-align: middle;
+        }
+
+        .gps-table tbody tr:hover {
+            background: #f0fbfb !important;
+        }
+
+        .gps-vehicle-name {
+            color: var(--acs-teal);
+            font-weight: 750;
+        }
+
+        .util-cell {
+            min-width: 125px;
+        }
+
+        .util-value {
+            font-size: .82rem;
+            font-weight: 750;
+            margin-bottom: 5px;
+        }
+
+        .util-track {
+            height: 7px;
+            border-radius: 99px;
+            background: #e9eff4;
+            overflow: hidden;
+        }
+
+        .util-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #0c9b9d, #36b7a7);
+        }
+
+        .gps-table-hint {
+            color: var(--acs-muted);
+            font-size: .82rem;
+        }
+
+        .gps-cost-idle {
+            color: #dc3545;
+            font-weight: 750;
+        }
+
+        .gps-cost-drive {
+            color: #16845b;
+            font-weight: 750;
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width:767px) {
+            .dashboard-nav .nav-link {
+                padding: 11px 12px;
+                font-size: .85rem;
+            }
+
+            .service-hero, .gps-hero {
+                padding: 19px;
+            }
+
+            .service-hero-icon, .gps-hero-icon {
+                display: none;
+            }
+
+            .service-hero h3, .gps-hero h3 {
+                font-size: 1.3rem;
+            }
+
+            .service-kpi .kpi-value {
+                font-size: 1.65rem;
+            }
+
+            .gps-kpi .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            .service-panel, .service-chart-panel {
+                padding: 15px;
+            }
+
+            .chart-wrap {
+                height: 250px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <!-- Premium ACS Navbar (Responsive) -->
-    <nav class="navbar navbar-dark mb-4 shadow-sm" style="background-color: var(--acs-dark);">
-        <div class="container flex-wrap justify-content-between">
-            <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
-                <a href="/" class="btn btn-outline-light btn-sm" title="Back to Portal">
-                    <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Portal</span>
-                </a>
-                <span class="navbar-brand mb-0 h5 fw-bold text-white">
-                    <i class="bi bi-speedometer2 me-1"></i>Fleet Cost
+
+<!-- TOP NAVIGATION -->
+
+
+<nav class="topbar">
+    <div class="topbar-inner">
+
+        <a href="/" class="portal-link">
+            <i class="bi bi-arrow-left"></i>
+            <span>Portal</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+
+            <span class="data-status" id="dataStatus">
+                Loading...
+            </span>
+
+            <div class="brand">
+                <span class="brand-mark">
+                    <i class="bi bi-speedometer2"></i>
+                </span>
+
+                <span>
+                    ACS Fleet Analytics
+                    <small>Fleet operations & performance</small>
                 </span>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-white-50 small" id="dataStatus">Loading...</span>
-                <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="32" onerror="this.style.display='none'">
+        </div>
+
+    </div>
+</nav>
+
+
+<div class="container pb-5">
+
+    <!-- DASHBOARD NAVIGATION: GPS FIRST -->
+
+    <ul class="nav nav-tabs dashboard-nav mb-4" id="mainTabs" role="tablist">
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="vehicle-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#vehicle-pane"
+                    type="button"
+                    role="tab"
+                    aria-selected="true">
+                <i class="bi bi-truck me-1"></i>
+                Vehicle Efficiency (GPS)
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="service-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#service-pane"
+                    type="button"
+                    role="tab"
+                    aria-selected="false">
+                <i class="bi bi-receipt me-1"></i>
+                Service Profitability
+            </button>
+        </li>
+
+    </ul>
+
+    <div class="tab-content" id="mainTabsContent">
+
+        <!-- ================================= -->
+        <!-- VEHICLE EFFICIENCY - FIRST TAB    -->
+        <!-- ================================= -->
+
+        <div class="tab-pane fade show active" id="vehicle-pane" role="tabpanel">
+
+            <section class="gps-hero">
+                <div>
+                    <div class="small text-uppercase fw-bold mb-2"
+                         style="letter-spacing:.12em;color:#b9e8e7;">
+                        ACS FLEET INTELLIGENCE
+                    </div>
+
+                    <h3>
+                        <i class="bi bi-truck-front me-2"></i>Vehicle Efficiency
+                    </h3>
+
+                    <p>Monitor vehicle utilization, fuel consumption, idling and distance travelled.</p>
+                </div>
+
+                <div class="gps-hero-icon">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+            </section>
+
+            <section class="gps-filter-panel">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="gpsYear">Reporting Year</label>
+                        <select id="gpsYear" class="form-select">
+                            <option value="All">All years</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="gpsMonth">Reporting Month</label>
+                        <select id="gpsMonth" class="form-select">
+                            <option value="All">All months</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="gpsVehicleSelect">Vehicle History</label>
+                        <select id="gpsVehicleSelect"
+                                class="form-select"
+                                onchange="handleVehicleSelect(this.value)">
+                            <option value="" disabled selected>— Select a vehicle —</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <button id="syncGpsBtn"
+                                class="btn btn-success w-100"
+                                onclick="syncGpsSheet()">
+                            <i class="bi bi-arrow-repeat me-1"></i>Sync GPS Data
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <div id="gpsError" class="alert alert-warning d-none"></div>
+
+            <div class="row g-3 mb-4" id="gpsMetrics" style="display:none;">
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="gps-kpi" style="--kpi-color:#dc3545;--kpi-tint:#fff0f1;">
+                        <div class="kpi-icon"><i class="bi bi-fuel-pump"></i></div>
+                        <div class="kpi-label">Idle Fuel Cost · Wasted</div>
+                        <div class="kpi-value" id="gpsIdleCost">$0.00</div>
+                        <div class="kpi-note">Fuel consumed while vehicles are idling</div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="gps-kpi" style="--kpi-color:#16845b;--kpi-tint:#eaf8f1;">
+                        <div class="kpi-icon"><i class="bi bi-car-front"></i></div>
+                        <div class="kpi-label">Moving Fuel Cost</div>
+                        <div class="kpi-value" id="gpsDriveCost">$0.00</div>
+                        <div class="kpi-note">Fuel consumed while driving</div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="gps-kpi" style="--kpi-color:#2563eb;--kpi-tint:#edf4ff;">
+                        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+                        <div class="kpi-label">Total Fleet Fuel Cost</div>
+                        <div class="kpi-value" id="gpsTotalCost">$0.00</div>
+                        <div class="kpi-note">Combined idle and moving fuel costs</div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="gps-kpi" style="--kpi-color:#7c3aed;--kpi-tint:#f3efff;">
+                        <div class="kpi-icon"><i class="bi bi-signpost-2"></i></div>
+                        <div class="kpi-label">Total Distance</div>
+                        <div class="kpi-value" id="gpsTotalDistance">—</div>
+                        <div class="kpi-note">Recorded fleet distance for this period</div>
+                    </div>
+                </div>
+
             </div>
-        </div>
-    </nav>
 
-    <div class="container pb-5">
-        <!-- Empty State Banner -->
-        <div id="emptyBanner" class="alert alert-info d-none" role="alert">
-            <strong>No data loaded yet.</strong> Upload a CSV or Excel file below to populate the dashboard.
+            <section class="gps-panel" id="gpsChartPanel" style="display:none;">
+
+                <div class="gps-panel-heading">
+                    <div>
+                        <h5>Fuel Consumption by Vehicle</h5>
+                        <p>Compare fuel used while idling against fuel used while driving.</p>
+                    </div>
+
+                    <span class="badge rounded-pill text-bg-light border">Gallons</span>
+                </div>
+
+                <div class="gps-chart-wrap">
+                    <canvas id="gpsFuelComparisonChart"></canvas>
+                </div>
+
+            </section>
+
+            <section class="gps-panel" id="gpsTableContainer" style="display:none;">
+
+                <div class="gps-panel-heading">
+                    <div>
+                        <h5>Fleet Performance</h5>
+                        <p>Vehicle-level operating statistics for the selected reporting period.</p>
+                    </div>
+
+                    <span class="gps-table-hint">
+                        <i class="bi bi-hand-index-thumb"></i>
+                        Select a vehicle for history
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table gps-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Vehicle</th>
+                                <th>Utilization</th>
+                                <th>Idle (Hrs)</th>
+                                <th>Drive (Hrs)</th>
+                                <th>Idle Fuel</th>
+                                <th>Drive Fuel</th>
+                                <th class="text-danger">Idle Cost</th>
+                                <th class="text-success">Drive Cost</th>
+                                <th>Distance</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="gpsTableBody"></tbody>
+                    </table>
+                </div>
+
+            </section>
+
         </div>
 
-        <!-- Filters Section -->
-        <div class="filter-section">
-            <h5 class="mb-3">Filter Dashboard</h5>
-            <div class="row g-2">
+        <!-- ================================= -->
+        <!-- SERVICE PROFITABILITY - SECOND    -->
+        <!-- ================================= -->
+
+        <div class="tab-pane fade" id="service-pane" role="tabpanel">
+
+            <section class="service-hero">
+                <div>
+                    <div class="eyebrow">ACS BUSINESS INTELLIGENCE</div>
+
+                    <h3>
+                        <i class="bi bi-graph-up-arrow me-2"></i>
+                        Service Profitability
+                    </h3>
+
+                    <p>Analyze operating costs, service performance and fleet availability.</p>
+                </div>
+
+                <div class="service-hero-icon">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+            </section>
+
+            <!-- SERVICE FILTERS -->
+
+            <section class="service-filter-panel">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="serviceYear">Reporting Year</label>
+                        <select id="serviceYear" class="form-select">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="serviceMonth">Reporting Month</label>
+                        <select id="serviceMonth" class="form-select">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label" for="serviceProduct">Product Type</label>
+                        <select id="serviceProduct" class="form-select">
+                            <option value="All">All</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <button class="btn upload-btn w-100"
+                                data-bs-toggle="modal"
+                                data-bs-target="#uploadBookingModal">
+                            <i class="bi bi-cloud-arrow-up me-1"></i>
+                            Upload Bookings
+                        </button>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <div class="correction-notice">
+                <i class="bi bi-info-circle-fill"></i>
+                Mileage and Fuel Costs are adjusted using the GPS Correction Factor (41.2%).
+            </div>
+
+            <!-- SERVICE KPI CARDS -->
+
+            <div class="row g-3 mb-4">
+
                 <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted mb-1">Year</label>
-                    <select id="yearFilter" class="form-select"><option value="All">All</option></select>
+                    <div class="service-kpi"
+                         style="--kpi-color:#356294;--kpi-tint:#edf4fc;">
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-signpost-2"></i>
+                        </div>
+
+                        <div class="kpi-label">Total Miles Driven</div>
+                        <div class="kpi-value" id="totalMiles">0 mi</div>
+                        <div class="kpi-note">Recorded fleet mileage</div>
+
+                    </div>
                 </div>
+
                 <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted mb-1">Month</label>
-                    <select id="monthFilter" class="form-select"><option value="All">All</option></select>
+                    <div class="service-kpi"
+                         style="--kpi-color:#087f8c;--kpi-tint:#e7f7f7;">
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+
+                        <div class="kpi-label">Cumulative Drive Hours</div>
+                        <div class="kpi-value" id="totalHours">0</div>
+                        <div class="kpi-note">Total recorded driving hours</div>
+
+                    </div>
                 </div>
+
                 <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted mb-1">Product Type</label>
-                    <select id="productFilter" class="form-select"><option value="All">All</option></select>
+                    <div class="service-kpi"
+                         style="--kpi-color:#e47a18;--kpi-tint:#fff4e8;">
+
+                        <div class="kpi-icon">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+
+                        <div class="kpi-label">Average Cost per Run</div>
+                        <div class="kpi-value" id="avgCost">$0.00</div>
+                        <div class="kpi-note" id="fuelNote">Estimated fuel cost: Loading...</div>
+
+                    </div>
                 </div>
+
             </div>
+
+            <!-- COST BREAKDOWN CHART -->
+
+            <section class="service-chart-panel">
+
+                <div class="section-heading">
+                    <div>
+                        <h5>
+                            <i class="bi bi-bar-chart-fill me-2 text-primary"></i>
+                            Cost Breakdown by Service Type
+                        </h5>
+
+                        <p>Compare the average operating cost across your service categories.</p>
+                    </div>
+
+                    <span class="badge rounded-pill text-bg-light border">
+                        USD ($)
+                    </span>
+                </div>
+
+                <div class="chart-wrap">
+                    <canvas id="serviceChart"></canvas>
+                </div>
+
+            </section>
+
+            <!-- FLEET MANAGEMENT -->
+
+            <div class="fleet-heading">
+                <div>
+                    <h5>
+                        <i class="bi bi-car-front-fill me-2 text-primary"></i>
+                        Fleet Management
+                    </h5>
+
+                    <p>Monitor vehicle availability and operational status.</p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border">
+                    Vehicle Availability
+                </span>
+            </div>
+
+            <div class="row g-3" id="fleetContainer"></div>
+
         </div>
 
-        <!-- Metrics Dashboard -->
-        <div class="row mb-4 g-2">
-            <div class="col-12 col-md-4">
-                <div class="metric-card">
-                    <h5>Total Miles Driven</h5>
-                    <h2 id="totalMiles">0 mi</h2>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="metric-card">
-                    <h5>Cumulative Drive Hours</h5>
-                    <h2 id="totalHours">0</h2>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="metric-card">
-                    <h5>Avg. Cost per Run</h5>
-                    <h2 id="avgCost">$0.00</h2>
-                    <!-- Fuel Subnote -->
-                    <p id="fuelNote" class="mt-3 mb-0 text-white-50" style="font-size: 0.85rem; font-style: italic;">
-                        Loading fuel data...
-                    </p>
-                </div>
-            </div>
-        </div>
+    </div>
+</div>
 
-        <!-- Fleet Management -->
-        <h5 class="mb-3 fw-bold">Fleet Management</h5>
-        <!-- Changed col-md-4 to responsive breakpoints for better mobile layout -->
-        <div class="row g-3 mb-4" id="fleetContainer"></div>
+<!-- UPLOAD BOOKINGS MODAL -->
 
-        <!-- Data Upload Section -->
-        <div class="filter-section mt-4">
-            <h5 class="mb-2">Load / Replace Dataset</h5>
-            <p class="text-muted small mb-3">Uploading a new file replaces all existing data. Formats: CSV, XLSX.</p>
+<div class="modal fade" id="uploadBookingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
 
-            <!-- Changed to stack vertically on mobile -->
-            <form id="uploadForm" class="d-flex flex-column flex-sm-row gap-2">
-                <input type="file" id="fileInput" class="form-control" accept=".csv, .xlsx, .xls">
-                <button type="submit" class="btn btn-primary text-nowrap">Upload & Replace</button>
-            </form>
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Upload Booking Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="uploadForm">
+
+                    <label class="small text-muted mb-2">
+                        Upload new CSV or Excel file (Replaces existing booking data):
+                    </label>
+
+                    <input type="file"
+                           id="fileInput"
+                           class="form-control mb-3"
+                           accept=".csv,.xlsx">
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-cloud-arrow-up me-1"></i>
+                        Upload Bookings
+                    </button>
+
+                </form>
+            </div>
+
         </div>
     </div>
+</div>
 
-    <script>
-        const yearFilter = document.getElementById('yearFilter');
-        const monthFilter = document.getElementById('monthFilter');
-        const productFilter = document.getElementById('productFilter');
-        const fleetContainer = document.getElementById('fleetContainer');
-        const emptyBanner = document.getElementById('emptyBanner');
-        const dataStatus = document.getElementById('dataStatus');
+<!-- VEHICLE DETAIL MODAL -->
 
-        function setSelectOptions(selectEl, options, currentValue) {
-            selectEl.innerHTML = '<option value="All">All</option>';
+<div class="modal fade" id="vehicleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="modalVehicleName">Vehicle History</h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body bg-light">
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 h-100 p-3">
+
+                            <h6 class="fw-bold text-center mb-3">
+                                Fuel Consumption (Gallons)
+                            </h6>
+
+                            <div style="position:relative;height:300px;">
+                                <canvas id="modalFuelChart"></canvas>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 h-100 p-3">
+
+                            <h6 class="fw-bold text-center mb-3">
+                                Cost Breakdown ($)
+                            </h6>
+
+                            <div style="position:relative;height:300px;">
+                                <canvas id="modalCostChart"></canvas>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    Chart.register(ChartDataLabels);
+
+    let serviceChartObj = null;
+    let modalFuelChartObj = null;
+    let modalCostChartObj = null;
+    let gpsFuelComparisonChartObj = null;
+
+    const vehicleModal = new bootstrap.Modal(
+        document.getElementById('vehicleModal')
+    );
+
+    // =====================================
+    // LOAD FILTERS
+    // =====================================
+
+    async function loadFilters() {
+
+        const res = await fetch('/fleet/api/filters', {
+            cache: 'no-store'
+        });
+
+        const data = await res.json();
+
+        const populate = (id, options) => {
+
+            const el = document.getElementById(id);
+
+            el.innerHTML = '<option value="All">All</option>';
+
             options.forEach(opt => {
-                const option = document.createElement('option');
-                if (typeof opt === 'object' && opt !== null) {
-                    option.value = opt.value;
-                    option.textContent = opt.label;
-                } else {
-                    option.value = opt;
-                    option.textContent = opt;
-                }
-                selectEl.appendChild(option);
+
+                const o = document.createElement('option');
+
+                o.value = typeof opt === 'object' ? opt.value : opt;
+                o.textContent = typeof opt === 'object' ? opt.label : opt;
+
+                el.appendChild(o);
+
             });
-            const validValues = Array.from(selectEl.options).map(o => o.value);
-            if (currentValue && validValues.includes(currentValue)) {
-                selectEl.value = currentValue;
-            } else {
-                selectEl.value = 'All';
-            }
+
+        };
+
+        populate('serviceYear', data.filters.years);
+        populate('serviceMonth', data.filters.months);
+        populate('serviceProduct', data.filters.products);
+
+        populate('gpsYear', data.filters.years);
+        populate('gpsMonth', data.filters.months);
+
+        document.getElementById('dataStatus').textContent =
+            data.has_data ? `${data.record_count} records` : 'No data';
+
+    }
+
+
+    // =====================================
+    // SERVICE PROFITABILITY
+    // =====================================
+
+    async function fetchServiceMetrics() {
+
+        const params = new URLSearchParams({
+
+            year: document.getElementById('serviceYear').value,
+            month: document.getElementById('serviceMonth').value,
+            product: document.getElementById('serviceProduct').value
+
+        });
+
+        const res = await fetch(`/fleet/api/metrics?${params}`, {
+            cache: 'no-store'
+        });
+
+        if (res.ok) {
+
+            const data = await res.json();
+
+            document.getElementById('totalMiles').innerText = data.total_miles;
+            document.getElementById('totalHours').innerText = data.total_hours;
+            document.getElementById('avgCost').innerText = data.avg_cost;
+
+            document.getElementById('fuelNote').innerText =
+                `Estimated fuel cost: ${data.avg_fuel_cost}`;
+
+            renderServiceChart(data.cost_breakdown);
+
         }
 
-        async function loadFilters() {
-            try {
-                const response = await fetch('/fleet/api/filters', { cache: 'no-store' });
-                const data = await response.json();
-                setSelectOptions(yearFilter, data.filters.years, yearFilter.value);
-                setSelectOptions(monthFilter, data.filters.months, monthFilter.value);
-                setSelectOptions(productFilter, data.filters.products, productFilter.value);
+    }
 
-                if (!data.has_data) {
-                    if (emptyBanner) emptyBanner.classList.remove('d-none');
-                    dataStatus.textContent = 'No data';
-                } else {
-                    if (emptyBanner) emptyBanner.classList.add('d-none');
-                    dataStatus.textContent = `${data.record_count} records`;
+
+    function renderServiceChart(breakdown) {
+
+        if (!breakdown || Object.keys(breakdown).length === 0) return;
+
+        const ctx = document.getElementById('serviceChart').getContext('2d');
+
+        if (serviceChartObj) serviceChartObj.destroy();
+
+        serviceChartObj = new Chart(ctx, {
+
+            type: 'bar',
+
+            data: {
+
+                labels: Object.keys(breakdown),
+
+                datasets: [{
+
+                    label: 'Average Cost per Run ($)',
+
+                    data: Object.values(breakdown),
+
+                    backgroundColor: [
+                        '#356294',
+                        '#087f8c',
+                        '#e47a18',
+                        '#dc3545'
+                    ],
+
+                    borderRadius: 7,
+                    maxBarThickness: 65
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+                maintainAspectRatio: false,
+
+                layout: {
+                    padding: {
+                        top: 25
+                    }
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    datalabels: {
+
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#334155',
+
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+
+                        formatter: value => '$' + Number(value).toFixed(2)
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        suggestedMax:
+                            Math.max(...Object.values(breakdown)) * 1.2,
+
+                        grid: {
+                            color: '#edf2f6'
+                        },
+
+                        ticks: {
+                            callback: value => '$' + value
+                        }
+
+                    },
+
+                    x: {
+
+                        grid: {
+                            display: false
+                        }
+
+                    }
+
                 }
-                return data.has_data;
-            } catch (err) {
-                console.error('Failed to load filters:', err);
-                return false;
+
             }
+
+        });
+
+    }
+
+
+    // =====================================
+    // FLEET MANAGEMENT
+    // =====================================
+
+    async function loadFleet() {
+
+        const res = await fetch('/fleet/api/fleet', {
+            cache: 'no-store'
+        });
+
+        const data = await res.json();
+
+        const container = document.getElementById('fleetContainer');
+
+        container.innerHTML = '';
+
+        for (const [cat, vehicles] of Object.entries(data)) {
+
+            let html = `
+
+                <div class="col-12 col-md-6 col-lg-4">
+
+                    <div class="fleet-card">
+
+                        <h6>
+                            <i class="bi bi-car-front me-2"></i>${cat}
+                        </h6>
+
+            `;
+
+            vehicles.forEach(v => {
+
+                const checked = v.status === 'Available' ? 'checked' : '';
+
+                const badge = v.status === 'Available'
+                    ? 'bg-success-subtle text-success'
+                    : 'bg-danger-subtle text-danger';
+
+                html += `
+
+                    <div class="vehicle-item">
+
+                        <div style="max-width:75%;">
+
+                            <span class="vehicle-name d-block text-truncate">
+                                ${v.vehicle}
+                            </span>
+
+                            <span class="badge ${badge} mt-1">
+                                ${v.status}
+                            </span>
+
+                        </div>
+
+                        <div class="form-check form-switch">
+
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   ${checked}
+                                   onchange="toggleVehicle('${v.vehicle}')">
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            });
+
+            container.innerHTML += html + `</div></div>`;
+
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    }
+
+
+    async function toggleVehicle(v) {
+
+        await fetch('/fleet/api/fleet/toggle', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                vehicle: v
+            })
+
+        });
+
+        loadFleet();
+        fetchServiceMetrics();
+
+    }
+
+
+    // =====================================
+    // VEHICLE EFFICIENCY / GPS
+    // =====================================
+
+    async function fetchGpsMetrics() {
+
+        const errorDiv = document.getElementById('gpsError');
+        const metricsDiv = document.getElementById('gpsMetrics');
+        const tableDiv = document.getElementById('gpsTableContainer');
+
+        errorDiv.classList.add('d-none');
+
+        metricsDiv.style.display = 'none';
+        tableDiv.style.display = 'none';
+
+        document.getElementById('gpsChartPanel').style.display = 'none';
+
+        const params = new URLSearchParams({
+
+            year: document.getElementById('gpsYear').value,
+            month: document.getElementById('gpsMonth').value
+
+        });
+
+        const res = await fetch(`/fleet/api/gps_metrics?${params}`, {
+            cache: 'no-store'
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+
+            errorDiv.innerText = data.error;
+            errorDiv.classList.remove('d-none');
+
+            return;
+
+        }
+
+        metricsDiv.style.display = 'flex';
+        tableDiv.style.display = 'block';
+
+        document.getElementById('gpsChartPanel').style.display = 'block';
+
+        document.getElementById('gpsIdleCost').innerText =
+            data.total_idle_cost;
+
+        document.getElementById('gpsDriveCost').innerText =
+            data.total_drive_cost;
+
+        document.getElementById('gpsTotalCost').innerText =
+            `$${Number(data.total_fuel_cost || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+        const totalDistance = data.fleet_data.reduce((sum, v) => {
+
+            const miles = parseFloat(
+                String(v.distance).replace(/[^0-9.]/g, '')
+            ) || 0;
+
+            return sum + miles;
+
+        }, 0);
+
+        document.getElementById('gpsTotalDistance').innerText =
+            `${totalDistance.toLocaleString(undefined, {
+                maximumFractionDigits: 0
+            })} mi`;
+
+        const tbody = document.getElementById('gpsTableBody');
+        const vehicleSelect = document.getElementById('gpsVehicleSelect');
+
+        tbody.innerHTML = '';
+
+        vehicleSelect.innerHTML =
+            '<option value="" disabled selected>— Select a vehicle —</option>';
+
+        data.fleet_data.forEach(v => {
+
+            vehicleSelect.innerHTML +=
+                `<option value="${v.id}">${v.vehicle}</option>`;
+
+            const utilization = Math.max(
+                0,
+                Math.min(100, Number(v.utilization) || 0)
+            );
+
+            tbody.innerHTML += `
+
+                <tr class="clickable-row"
+                    onclick="openVehicleModal('${v.id}')"
+                    title="View historical charts for ${v.vehicle}">
+
+                    <td>
+                        <span class="gps-vehicle-name">${v.vehicle}</span>
+                        <i class="bi bi-chevron-right small text-muted"></i>
+                    </td>
+
+                    <td class="util-cell">
+
+                        <div class="util-value">${utilization}%</div>
+
+                        <div class="util-track">
+                            <div class="util-fill"
+                                 style="width:${utilization}%">
+                            </div>
+                        </div>
+
+                    </td>
+
+                    <td>${v.idle_hours}</td>
+                    <td>${v.drive_hours}</td>
+                    <td>${v.idle_fuel} gal</td>
+                    <td>${v.drive_fuel} gal</td>
+                    <td class="gps-cost-idle">${v.idle_cost}</td>
+                    <td class="gps-cost-drive">${v.drive_cost}</td>
+                    <td class="fw-semibold">${v.distance}</td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        // FUEL COMPARISON CHART
+
+        if (gpsFuelComparisonChartObj) {
+            gpsFuelComparisonChartObj.destroy();
+        }
+
+        gpsFuelComparisonChartObj = new Chart(
+
+            document.getElementById('gpsFuelComparisonChart').getContext('2d'),
+
+            {
+
+                type: 'bar',
+
+                data: {
+
+                    labels: data.fleet_data.map(v => v.vehicle),
+
+                    datasets: [
+
+                        {
+                            label: 'Idle fuel (gal)',
+                            data: data.fleet_data.map(v => Number(v.idle_fuel) || 0),
+                            backgroundColor: '#e76f78',
+                            borderRadius: 5
+                        },
+
+                        {
+                            label: 'Driving fuel (gal)',
+                            data: data.fleet_data.map(v => Number(v.drive_fuel) || 0),
+                            backgroundColor: '#159b83',
+                            borderRadius: 5
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    scales: {
+
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: '#edf2f6' },
+                            title: { display: true, text: 'Gallons' }
+                        },
+
+                        y: {
+                            grid: { display: false },
+                            ticks: { autoSkip: false }
+                        }
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+                            position: 'bottom',
+
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                padding: 18
+                            }
+                        },
+
+                        datalabels: {
+                            display: false
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+    }
+
+
+    function handleVehicleSelect(vehicleId) {
+
+        if (!vehicleId) return;
+
+        openVehicleModal(vehicleId);
+
+        document.getElementById('gpsVehicleSelect').value = "";
+
+    }
+
+
+    // =====================================
+    // VEHICLE HISTORY
+    // =====================================
+
+    async function openVehicleModal(vehicleId) {
+
+        const res = await fetch(`/fleet/api/vehicle_history/${vehicleId}`);
+
+        if (!res.ok) {
+            return alert("Could not load vehicle history.");
+        }
+
+        const data = await res.json();
+
+        document.getElementById('modalVehicleName').innerText =
+            data.vehicle_name;
+
+        const labels = data.history.map(h => h.period);
+
+        const idleFuel = data.history.map(h => h.idle_fuel);
+        const driveFuel = data.history.map(h => h.drive_fuel);
+
+        const idleCost = data.history.map(h => h.idle_cost);
+        const driveCost = data.history.map(h => h.drive_cost);
+
+
+        // FUEL CHART
+
+        if (modalFuelChartObj) modalFuelChartObj.destroy();
+
+        modalFuelChartObj = new Chart(
+
+            document.getElementById('modalFuelChart').getContext('2d'),
+
+            {
+
+                type: 'bar',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+                            label: 'Idle Fuel (gal)',
+                            data: idleFuel,
+                            backgroundColor: '#dc3545'
+                        },
+
+                        {
+                            label: 'Driving Fuel (gal)',
+                            data: driveFuel,
+                            backgroundColor: '#198754'
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true }
+                    },
+
+                    plugins: {
+
+                        datalabels: {
+
+                            color: 'white',
+
+                            font: {
+                                weight: 'bold'
+                            },
+
+                            formatter: value =>
+                                value > 0 ? value.toFixed(1) : ''
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+
+        // COST CHART
+
+        if (modalCostChartObj) modalCostChartObj.destroy();
+
+        modalCostChartObj = new Chart(
+
+            document.getElementById('modalCostChart').getContext('2d'),
+
+            {
+
+                type: 'line',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+                            label: 'Idle Cost ($)',
+                            data: idleCost,
+                            borderColor: '#dc3545',
+                            tension: 0.3
+                        },
+
+                        {
+                            label: 'Driving Cost ($)',
+                            data: driveCost,
+                            borderColor: '#198754',
+                            tension: 0.3
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    plugins: {
+
+                        datalabels: {
+
+                            color: '#333',
+                            align: 'top',
+                            offset: 4,
+
+                            font: {
+                                weight: 'bold'
+                            },
+
+                            formatter: value =>
+                                value > 0 ? '$' + Math.round(value) : ''
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+        vehicleModal.show();
+
+    }
+
+
+    // =====================================
+    // GPS SYNCHRONIZATION
+    // =====================================
+
+    async function syncGpsSheet() {
+
+        const btn = document.getElementById('syncGpsBtn');
+
+        const originalText = btn.innerHTML;
+
+        btn.innerHTML =
+            '<i class="bi bi-arrow-repeat"></i> Syncing...';
+
+        btn.disabled = true;
+
+        try {
+
+            const res = await fetch('/fleet/sync_gps_sheet', {
+                method: 'POST'
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+
+                alert(data.message);
+
+                fetchGpsMetrics();
+
+            } else {
+
+                alert(data.error);
+
+            }
+
+        } catch (err) {
+
+            alert("Network error during sync.");
+
+        } finally {
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+        }
+
+    }
+
+
+    // =====================================
+    // TAB EVENT LISTENERS
+    // =====================================
+
+    document.getElementById('vehicle-tab').addEventListener(
+        'shown.bs.tab',
+        () => fetchGpsMetrics()
+    );
+
+    document.getElementById('service-tab').addEventListener(
+        'shown.bs.tab',
+        () => {
+
+            fetchServiceMetrics();
+            loadFleet();
+
+        }
+    );
+
+
+    // =====================================
+    // BOOKING UPLOAD
+    // =====================================
+
+    document.getElementById('uploadForm').addEventListener(
+        'submit',
+        async (e) => {
+
             e.preventDefault();
-            const fileInput = document.getElementById('fileInput');
-            if (!fileInput.files.length) return alert('Please select a CSV or Excel file.');
+
+            const file = document.getElementById('fileInput').files[0];
+
+            if (!file) {
+                alert("Please select a file first.");
+                return;
+            }
 
             const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
 
-            const response = await fetch('/fleet/upload', { method: 'POST', body: formData });
-            const data = await response.json();
+            formData.append('file', file);
 
-            if (response.ok) {
-                alert(data.message);
-                yearFilter.value = 'All';
-                monthFilter.value = 'All';
-                productFilter.value = 'All';
-                await loadFilters();
-                await fetchMetrics();
-                await loadFleet();
-            } else {
-                alert(data.error);
-            }
-        });
+            const res = await fetch('/fleet/upload', {
 
-        async function fetchMetrics() {
-            const params = new URLSearchParams({
-                year: yearFilter.value,
-                month: monthFilter.value,
-                product: productFilter.value
+                method: 'POST',
+                body: formData
+
             });
 
-            try {
-                const response = await fetch(`/fleet/api/metrics?${params.toString()}`, { cache: 'no-store' });
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('totalMiles').innerText = data.total_miles;
-                    document.getElementById('totalHours').innerText = data.total_hours;
-                    document.getElementById('avgCost').innerText = data.avg_cost;
+            const data = await res.json();
 
-                    const fuelNote = document.getElementById('fuelNote');
-                    const selectedProduct = productFilter.value;
+            alert(data.message || data.error);
 
-                    if (selectedProduct === 'All') {
-                        fuelNote.innerText = `Avg fuel cost: ${data.avg_fuel_cost}`;
-                    } else {
-                        // Uses exact class label as requested
-                        fuelNote.innerText = `Fuel cost for a ${selectedProduct} run: ${data.avg_fuel_cost}`;
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to fetch metrics:', err);
+            if (res.ok) {
+
+                bootstrap.Modal.getInstance(
+                    document.getElementById('uploadBookingModal')
+                ).hide();
+
+                document.getElementById('uploadForm').reset();
+
+                await loadFilters();
+
+                fetchServiceMetrics();
+
             }
+
+        }
+    );
+
+
+    // =====================================
+    // FILTER EVENT LISTENERS
+    // =====================================
+
+    document.getElementById('serviceYear').addEventListener(
+        'change',
+        fetchServiceMetrics
+    );
+
+    document.getElementById('serviceMonth').addEventListener(
+        'change',
+        fetchServiceMetrics
+    );
+
+    document.getElementById('serviceProduct').addEventListener(
+        'change',
+        fetchServiceMetrics
+    );
+
+    document.getElementById('gpsYear').addEventListener(
+        'change',
+        fetchGpsMetrics
+    );
+
+    document.getElementById('gpsMonth').addEventListener(
+        'change',
+        fetchGpsMetrics
+    );
+
+
+    // =====================================
+    // INITIAL LOAD
+    // GPS DASHBOARD OPENS FIRST
+    // =====================================
+
+    window.addEventListener('DOMContentLoaded', async () => {
+
+        try {
+
+            await loadFilters();
+
+            // Load GPS dashboard because it is the default active tab.
+            await fetchGpsMetrics();
+
+        } catch (error) {
+
+            console.error("Dashboard initialization error:", error);
+
+            document.getElementById('gpsError').innerText =
+                "Unable to load dashboard data. Please refresh the page.";
+
+            document.getElementById('gpsError').classList.remove('d-none');
+
         }
 
-        async function loadFleet() {
-            try {
-                const response = await fetch('/fleet/api/fleet', { cache: 'no-store' });
-                const fleetData = await response.json();
+    });
 
-                fleetContainer.innerHTML = '';
+</script>
 
-                for (const [category, vehicles] of Object.entries(fleetData)) {
-                    const col = document.createElement('div');
-                    // ✅ Optimized: Full width on phone, 2 cols on tablet, 3 cols on desktop
-                    col.className = 'col-12 col-md-6 col-lg-4';
-
-                    let vehicleHTML = `<div class="fleet-card"><h6 class="fw-bold border-bottom pb-2 mb-3">${category}</h6>`;
-
-                    vehicles.forEach(v => {
-                        const isChecked = v.status === 'Available' ? 'checked' : '';
-                        const badgeColor = v.status === 'Available' ? 'bg-success' : 'bg-danger';
-
-                        vehicleHTML += `
-                            <div class="vehicle-item">
-                                <div style="max-width: 75%;">
-                                    <span class="d-block text-truncate" style="font-size: 0.9rem;">${v.vehicle}</span>
-                                    <span class="badge ${badgeColor} mt-1" style="font-size: 0.7rem;">${v.status}</span>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox"
-                                           id="switch_${v.vehicle.replace(/\s/g, '')}"
-                                           ${isChecked}
-                                           onchange="toggleVehicle('${v.vehicle}')">
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    vehicleHTML += `</div>`;
-                    col.innerHTML = vehicleHTML;
-                    fleetContainer.appendChild(col);
-                }
-            } catch (err) {
-                console.error('Failed to load fleet:', err);
-            }
-        }
-
-        async function toggleVehicle(vehicleName) {
-            try {
-                const response = await fetch('/fleet/api/fleet/toggle', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ vehicle: vehicleName })
-                });
-
-                if (response.ok) {
-                    await loadFleet();
-                    await fetchMetrics();
-                } else {
-                    console.error("Toggle failed on server side.");
-                    await loadFleet();
-                }
-            } catch (err) {
-                console.error("Network error during toggle:", err);
-            }
-        }
-
-        yearFilter.addEventListener('change', fetchMetrics);
-        monthFilter.addEventListener('change', fetchMetrics);
-        productFilter.addEventListener('change', fetchMetrics);
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            await loadFleet();
-            const hasData = await loadFilters();
-            if (hasData) {
-                await fetchMetrics();
-            }
-        });
-    </script>
 </body>
 </html>

@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Driver Receipt Upload | ACS Portal</title>
+
+
+
+    <link rel="icon" type="image/png"
+
+          href="{{ url_for('static', filename='favicon.png') }}">
+
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+
+
+    <style>
+
+        :root {
+
+            --acs-navy: #172337;
+
+            --acs-blue: #2864dc;
+
+            --acs-blue-dark: #1d4fb5;
+
+            --acs-teal: #0b8f91;
+
+            --acs-ink: #1d2b3f;
+
+            --acs-muted: #718096;
+
+            --acs-line: #e3eaf2;
+
+            --acs-bg: #f2f5fa;
+
+            --acs-card: #ffffff;
+
+        }
+
+
+
+        * { box-sizing: border-box; }
+
+
+
+        body {
+
+            margin: 0;
+
+            background:
+
+                radial-gradient(circle at 10% 12%, rgba(40,100,220,.055), transparent 27rem),
+
+                var(--acs-bg);
+
+            color: var(--acs-ink);
+
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+
+            min-height: 100vh;
+
+        }
+
+
+
+        .topbar {
+
+            min-height: 68px;
+
+            background: var(--acs-navy);
+
+            color: #fff;
+
+            box-shadow: 0 3px 12px rgba(15, 29, 49, .14);
+
+        }
+
+
+
+        .topbar-inner {
+
+            max-width: 1160px;
+
+            margin: 0 auto;
+
+            padding: 0 24px;
+
+            min-height: 68px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 16px;
+
+        }
+
+
+
+        .portal-link {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            padding: 8px 12px;
+
+            border: 1px solid rgba(255,255,255,.45);
+
+            border-radius: 8px;
+
+            color: #fff;
+
+            text-decoration: none;
+
+            font-size: .88rem;
+
+            transition: *background* .2s ease, border-color .2s ease;
+
+        }
+
+
+
+        .portal-link:hover {
+
+            color: #fff;
+
+            background: rgba(255,255,255,.1);
+
+            border-color: #fff;
+
+        }
+
+
+
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-weight: 750;
+
+            letter-spacing: -.2px;
+
+        }
+
+
+
+        .brand-mark {
+
+            width: 34px;
+
+            height: 34px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 10px;
+
+            color: #fff;
+
+            background: linear-gradient(135deg, #3478f6, #0b9c9b);
+
+            font-size: 1.05rem;
+
+        }
+
+
+
+        .brand small {
+
+            display: block;
+
+            color: #aebbd0;
+
+            font-size: .67rem;
+
+            font-weight: 600;
+
+            letter-spacing: .11em;
+
+            text-transform: uppercase;
+
+            margin-top: 1px;
+
+        }
+
+
+
+        .page-shell {
+
+            width: min(100% - 40px, 760px);
+
+            margin: 34px auto 56px;
+
+        }
+
+
+
+        .page-intro {
+
+            margin-bottom: 20px;
+
+        }
+
+
+
+        .eyebrow {
+
+            color: var(--acs-teal);
+
+            font-size: .72rem;
+
+            font-weight: 800;
+
+            letter-spacing: .13em;
+
+            text-transform: uppercase;
+
+            margin-bottom: 7px;
+
+        }
+
+
+
+        .page-intro h1 {
+
+            margin: 0;
+
+            color: var(--acs-navy);
+
+            font-size: clamp(1.55rem, 3vw, 2rem);
+
+            font-weight: 800;
+
+            letter-spacing: -.045em;
+
+        }
+
+
+
+        .page-intro p {
+
+            color: var(--acs-muted);
+
+            margin: 7px 0 0;
+
+            font-size: .94rem;
+
+        }
+
+
+
+        .form-card {
+
+            background: var(--acs-card);
+
+            border: 1px solid rgba(221,230,240,.9);
+
+            border-radius: 18px;
+
+            box-shadow: 0 12px 34px rgba(27, 45, 72, .075);
+
+            overflow: hidden;
+
+        }
+
+
+
+        .form-card-top {
+
+            height: 5px;
+
+            background: linear-gradient(90deg, var(--acs-blue), #168f9b 75%, #54b7a6);
+
+        }
+
+
+
+        .form-card-body {
+
+            padding: 28px 32px 30px;
+
+        }
+
+
+
+        .form-section + .form-section {
+
+            border-top: 1px solid var(--acs-line);
+
+            margin-top: 25px;
+
+            padding-top: 23px;
+
+        }
+
+
+
+        .section-heading {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+
+            margin-bottom: 17px;
+
+        }
+
+
+
+        .section-icon {
+
+            width: 36px;
+
+            height: 36px;
+
+            flex: 0 0 36px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 11px;
+
+            color: var(--acs-blue);
+
+            background: #edf3ff;
+
+            font-size: 1rem;
+
+        }
+
+
+
+        .section-heading h2 {
+
+            margin: 0;
+
+            color: var(--acs-navy);
+
+            font-size: .98rem;
+
+            font-weight: 800;
+
+        }
+
+
+
+        .section-heading p {
+
+            margin: 3px 0 0;
+
+            color: var(--acs-muted);
+
+            font-size: .78rem;
+
+        }
+
+
+
+        .form-label {
+
+            color: #35445a;
+
+            font-size: .84rem;
+
+            font-weight: 700;
+
+            margin-bottom: 7px;
+
+        }
+
+
+
+        .form-control, .form-select {
+
+            min-height: 47px;
+
+            border: 1px solid #d9e2ed;
+
+            border-radius: 9px;
+
+            color: var(--acs-ink);
+
+            background-color: #fff;
+
+            font-size: .92rem;
+
+            box-shadow: none;
+
+            transition: border-color .18s ease, box-shadow .18s ease;
+
+        }
+
+
+
+        .form-control:focus, .form-select:focus {
+
+            border-color: #6b98ee;
+
+            box-shadow: 0 0 0 3px rgba(40,100,220,.12);
+
+        }
+
+
+
+        .form-control::placeholder { color: #a0adbd; }
+
+
+
+        .input-group-text {
+
+            border-color: #d9e2ed;
+
+            border-radius: 9px 0 0 9px;
+
+            background: #f7f9fc;
+
+            color: #718096;
+
+        }
+
+
+
+        .input-group .form-control {
+
+            border-radius: 0 9px 9px 0;
+
+        }
+
+
+
+        .field-help {
+
+            color: var(--acs-muted);
+
+            font-size: .77rem;
+
+            margin-top: 6px;
+
+        }
+
+
+
+        .driver-note {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 7px;
+
+            margin-top: 8px;
+
+            color: #748399;
+
+            font-size: .78rem;
+
+        }
+
+
+
+        .driver-note i { color: var(--acs-teal); margin-top: 1px; }
+
+
+
+        .card-details {
+
+            display: none;
+
+            padding: 15px;
+
+            border: 1px solid #dce8fb;
+
+            border-radius: 11px;
+
+            background: #f5f8ff;
+
+            margin-top: 13px;
+
+        }
+
+
+
+        .card-details.show {
+
+            display: block;
+
+            animation: reveal .18s ease-out;
+
+        }
+
+
+
+        @keyframes reveal {
+
+            from { opacity: 0; transform: translateY(-4px); }
+
+            to { opacity: 1; transform: translateY(0); }
+
+        }
+
+
+
+        .upload-zone {
+
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            padding: 17px;
+
+            border: 1.5px dashed #b9c9dd;
+
+            border-radius: 12px;
+
+            background: #f8faff;
+
+            cursor: pointer;
+
+            transition: border-color .2s ease, *background* .2s ease;
+
+        }
+
+
+
+        .upload-zone:hover, .upload-zone:focus-within {
+
+            border-color: var(--acs-blue);
+
+            background: #f2f6ff;
+
+        }
+
+
+
+        .upload-icon {
+
+            width: 46px;
+
+            height: 46px;
+
+            flex: 0 0 46px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 13px;
+
+            color: var(--acs-blue);
+
+            background: #e8efff;
+
+            font-size: 1.25rem;
+
+        }
+
+
+
+        .upload-copy { min-width: 0; }
+
+        .upload-copy strong {
+
+            display: block;
+
+            color: #263850;
+
+            font-size: .87rem;
+
+            overflow-wrap: anywhere;
+
+        }
+
+        .upload-copy span {
+
+            display: block;
+
+            color: var(--acs-muted);
+
+            font-size: .76rem;
+
+            margin-top: 3px;
+
+        }
+
+
+
+        .upload-zone input[type="file"] {
+
+            position: absolute;
+
+            inset: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            opacity: 0;
+
+            cursor: pointer;
+
+        }
+
+
+
+        .file-preview {
+
+            display: none;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-top: 12px;
+
+            padding: 10px 12px;
+
+            border: 1px solid var(--acs-line);
+
+            border-radius: 10px;
+
+            background: #fff;
+
+        }
+
+
+
+        .file-preview.show { display: flex; }
+
+        .file-preview img {
+
+            width: 54px;
+
+            height: 54px;
+
+            object-fit: cover;
+
+            border-radius: 7px;
+
+            border: 1px solid var(--acs-line);
+
+        }
+
+        .file-preview .file-name {
+
+            min-width: 0;
+
+            overflow-wrap: anywhere;
+
+            color: #34445b;
+
+            font-size: .8rem;
+
+            font-weight: 650;
+
+        }
+
+        .file-preview .file-size {
+
+            color: var(--acs-muted);
+
+            font-size: .72rem;
+
+            margin-top: 2px;
+
+        }
+
+
+
+        .submit-btn {
+
+            min-height: 50px;
+
+            border: 0;
+
+            border-radius: 10px;
+
+            background: linear-gradient(100deg, var(--acs-blue), #3479ed);
+
+            color: #fff;
+
+            font-size: .94rem;
+
+            font-weight: 800;
+
+            box-shadow: 0 6px 14px rgba(40,100,220,.2);
+
+            transition: transform .18s ease, box-shadow .18s ease, *background* .18s ease;
+
+        }
+
+
+
+        .submit-btn:hover {
+
+            color: #fff;
+
+            background: linear-gradient(100deg, var(--acs-blue-dark), #2864dc);
+
+            transform: translateY(-1px);
+
+            box-shadow: 0 9px 18px rgba(40,100,220,.24);
+
+        }
+
+
+
+        .submit-btn:disabled {
+
+            opacity: .7;
+
+            transform: none;
+
+            cursor: wait;
+
+        }
+
+
+        /* Searchable driver dropdown */
+
+        .driver-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .driver-select-wrapper input.form-control {
+            padding-right: 42px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23718096' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            cursor: pointer;
+        }
+
+        .driver-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            max-height: 220px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            background: #fff;
+            border: 1px solid #d9e2ed;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(27, 45, 72, .14);
+            z-index: 1050;
+            padding: 5px;
+        }
+
+        .driver-dropdown.show {
+            display: block;
+        }
+
+        .driver-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 11px 12px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: #263850;
+            text-align: left;
+            font-size: .88rem;
+            cursor: pointer;
+        }
+
+        .driver-option i {
+            color: #718096;
+        }
+
+        .driver-option:hover,
+        .driver-option.active {
+            background: #edf3ff;
+            color: #2864dc;
+        }
+
+        .driver-empty {
+            display: none;
+            padding: 14px;
+            color: #718096;
+            font-size: .83rem;
+            text-align: center;
+        }
+
+        .driver-empty.show {
+            display: block;
+        }
+
+
+        .security-note {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 6px;
+
+            color: #8491a3;
+
+            font-size: .73rem;
+
+            margin-top: 15px;
+
+        }
+
+
+
+        .security-note i { color: #15936f; }
+
+
+
+        .alert {
+
+            border: 0;
+
+            border-radius: 12px;
+
+            box-shadow: 0 5px 16px rgba(27,45,72,.045);
+
+        }
+
+
+
+        .another-btn {
+
+            border-radius: 8px;
+
+            font-weight: 700;
+
+        }
+
+
+
+        @media (max-width: 575.98px) {
+
+            .topbar-inner {
+
+                padding: 0 16px;
+
+                min-height: 62px;
+
+            }
+
+            .topbar { min-height: 62px; }
+
+            .brand { font-size: .88rem; }
+
+            .brand small { font-size: .58rem; }
+
+            .page-shell {
+
+                width: min(100% - 26px, 760px);
+
+                margin: 25px auto 36px;
+
+            }
+
+            .form-card-body { padding: 22px 18px 23px; }
+
+            .page-intro p { font-size: .86rem; }
+
+            .section-heading { margin-bottom: 14px; }
+
+        }
+
+    </style>
+
+</head>
+
+
+
+<body>
+
+    <nav class="topbar">
+
+        <div class="topbar-inner">
+
+            <a href="/" class="portal-link">
+
+                <i class="bi bi-arrow-left"></i>
+
+                <span>Portal</span>
+
+            </a>
+
+
+
+            <div class="brand">
+
+                <span class="brand-mark"><i class="bi bi-receipt-cutoff"></i></span>
+
+                <span>
+
+                    ACS Driver Portal
+
+                    <small>Expense &amp; receipt submission</small>
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <main class="page-shell">
+
+        <header class="page-intro">
+
+            <div class="eyebrow">Driver expense center</div>
+
+            <h1>Submit a receipt</h1>
+
+            <p>Enter the receipt details and upload a clear photo for processing.</p>
+
+        </header>
+
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+          {% if messages %}
+
+            {% for category, message in messages %}
+
+              <div class="alert alert-{{ category }} text-center mb-3" role="alert">
+
+                  <div class="fw-semibold">{{ message }}</div>
+
+                  {% if category == 'success' %}
+
+                      <hr class="my-3">
+
+                      <a class="btn btn-outline-success btn-sm w-100 another-btn"
+
+                         href="/receipts/upload">
+
+                          <i class="bi bi-plus-circle me-1"></i> Submit Another Receipt
+
+                      </a>
+
+                  {% endif %}
+
+              </div>
+
+            {% endfor %}
+
+          {% endif %}
+
+        {% endwith %}
+
+
+
+        <section class="form-card">
+
+            <div class="form-card-top"></div>
+
+            <div class="form-card-body">
+
+                <form method="POST" enctype="multipart/form-data" id="receiptForm">
+
+
+
+                    <!-- DRIVER -->
+
+
+
+                    <!-- DRIVER -->
+
+                    <section class="form-section">
+
+                        <div class="section-heading">
+
+                            <span class="section-icon">
+
+                                <i class="bi bi-person-badge"></i>
+
+                            </span>
+
+                            <div>
+
+                                <h2>Driver information</h2>
+
+                                <p>Select your name and enter your registered work email.</p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!--
+                        <div class="mb-3">
+
+                            <label for="driverEmail" class="form-label">Your name</label>
+
+
+
+                            <select name="driver_name" id="driverEmail" class="form-select" required>
+
+                                <option value="" disabled selected>— Choose your name —</option>
+
+
+
+                                {% for email, name in drivers.items() %}
+
+                                    <option value="{{ name }}">{{ name }}</option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>-->
+
+                        <div class="mb-3">
+                            <label for="driverSearch" class="form-label">Your name</label>
+
+                            <div class="driver-select-wrapper">
+                                <input
+                                    type="text"
+                                    id="driverSearch"
+                                    class="form-control"
+                                    placeholder="Search or select your name..."
+                                    autocomplete="off"
+                                    aria-expanded="false"
+                                    aria-controls="driverOptions"
+                                    required
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="driver_name"
+                                    id="driverEmail"
+                                    required
+                                >
+
+                                <div class="driver-dropdown" id="driverOptions">
+                                    {% for email, name in drivers.items() %}
+                                        <button
+                                            type="button"
+                                            class="driver-option"
+                                            data-name="{{ name }}"
+                                        >
+                                            <i class="bi bi-person-circle"></i>
+                                            <span>{{ name }}</span>
+                                        </button>
+                                    {% endfor %}
+                                    <div class="driver-empty" id="driverEmpty">
+                                        No matching drivers found.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <div>
+
+                            <label for="driverWorkEmail" class="form-label">
+
+                                ACS work email address
+
+                            </label>
+
+
+
+                            <input
+
+                                type="email"
+
+                                name="driver_email"
+
+                                id="driverWorkEmail"
+
+                                class="form-control"
+
+                                placeholder="Enter your registered work email"
+
+                                autocomplete="email"
+
+                                required
+
+                            >
+
+
+
+                            <div id="driverVerificationMessage" class="field-help mt-2" aria-live="polite">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                Your email address will be checked against your registered driver details.
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+
+
+
+                    <!-- EXPENSE DETAILS -->
+
+                    <section class="form-section">
+
+                        <div class="section-heading">
+
+                            <span class="section-icon"><i class="bi bi-cash-coin"></i></span>
+
+                            <div>
+
+                                <h2>Expense details</h2>
+
+                                <p>Provide the date, amount and expense category.</p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="row g-3">
+
+                            <div class="col-sm-6">
+
+                                <label for="receiptDate" class="form-label">Date on receipt</label>
+
+                                <input type="date" name="date" id="receiptDate"
+
+                                       class="form-control" required>
+
+                            </div>
+
+                            <div class="col-sm-6">
+
+                                <label for="receiptAmount" class="form-label">Amount (USD)</label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">$</span>
+
+                                    <input type="number" step="0.01" min="0.01"
+
+                                           name="amount" id="receiptAmount"
+
+                                           class="form-control" placeholder="0.00" required>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <label for="expenseCategory" class="form-label">Category</label>
+
+                                <select name="category" id="expenseCategory" class="form-select" required>
+
+                                    <option value="Fuel" selected>Fuel</option>
+
+                                    <option value="Maintenance">Maintenance</option>
+
+                                    <option value="Car Wash">Car Wash</option>
+
+                                    <option value="Tolls/Parking">Tolls / Parking</option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+
+                    <!-- PAYMENT -->
+
+                    <section class="form-section">
+
+                        <div class="section-heading">
+
+                            <span class="section-icon"><i class="bi bi-credit-card"></i></span>
+
+                            <div>
+
+                                <h2>Payment information</h2>
+
+                                <p>Tell us how this expense was paid.</p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <label for="paymentMethod" class="form-label">Payment method</label>
+
+                        <select name="payment_method" id="paymentMethod" class="form-select" required>
+
+                            <option value="" disabled selected>— Select payment method —</option>
+
+                            <option value="Cash">Cash</option>
+
+                            <option value="Personal Card">Personal Card</option>
+
+                            <option value="Business Card">Business Card</option>
+
+                        </select>
+
+
+
+                        <div class="card-details" id="cardDetails" aria-hidden="true">
+
+                            <label for="cardLastFour" class="form-label">Last 4 digits of card</label>
+
+                            <input type="text" name="card_last_four" id="cardLastFour"
+
+                                   class="form-control" placeholder="e.g. 1234"
+
+                                   maxlength="4" inputmode="numeric"
+
+                                   pattern="[0-9]{4}"
+
+                                   title="Please enter exactly 4 digits">
+
+                            <div class="field-help">Enter only the last four digits. Do not enter your full card number.</div>
+
+                        </div>
+
+                    </section>
+
+
+
+                    <!-- RECEIPT PHOTO -->
+
+                    <section class="form-section">
+
+                        <div class="section-heading">
+
+                            <span class="section-icon"><i class="bi bi-camera"></i></span>
+
+                            <div>
+
+                                <h2>Receipt photo</h2>
+
+                                <p>Upload a clear image of the receipt.</p>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <label class="form-label" for="receiptImage">Upload receipt</label>
+
+                        <div class="upload-zone">
+
+                            <span class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+
+                            <span class="upload-copy">
+
+                                <strong id="uploadTitle">Choose a receipt photo</strong>
+
+                                <span id="uploadSubtitle">Tap to browse your files or take a photo</span>
+
+                            </span>
+
+                            <input type="file" name="receipt_image" id="receiptImage"
+
+                                   accept="image/*" capture="environment" required
+
+                                   aria-label="Choose receipt photo">
+
+                        </div>
+
+
+
+                        <div class="file-preview" id="filePreview">
+
+                            <img id="previewImage" alt="Receipt image preview">
+
+                            <div class="min-w-0">
+
+                                <div class="file-name" id="previewName"></div>
+
+                                <div class="file-size" id="previewSize"></div>
+
+                            </div>
+
+                            <i class="bi bi-check-circle-fill text-success ms-auto"></i>
+
+                        </div>
+
+                        <div class="field-help">Make sure the date, merchant and total amount are readable.</div>
+
+                    </section>
+
+
+
+                    <div class="mt-4">
+
+                        <button type="submit" class="btn submit-btn w-100" id="submitButton">
+
+                            <i class="bi bi-send-check me-2"></i> Submit Receipt
+
+                        </button>
+
+                        <div class="security-note">
+
+                            <i class="bi bi-shield-check"></i>
+
+                            Your submission will be sent securely to ACS.
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <script>
+        // Cache form elements before any verification code uses them.
+        const receiptForm = document.getElementById('receiptForm');
+        const submitButton = document.getElementById('submitButton');
+        const driverName = document.getElementById('driverEmail');
+        const driverWorkEmail = document.getElementById('driverWorkEmail');
+        const verificationMessage = document.getElementById('driverVerificationMessage');
+
+
+        // Searchable driver selection
+
+        const driverSearch = document.getElementById('driverSearch');
+        const driverDropdown = document.getElementById('driverOptions');
+        const driverOptions = document.querySelectorAll('.driver-option');
+        const driverEmpty = document.getElementById('driverEmpty');
+
+        function openDriverDropdown() {
+            driverDropdown.classList.add('show');
+            driverSearch.setAttribute('aria-expanded', 'true');
+            filterDrivers();
+        }
+
+        function closeDriverDropdown() {
+            driverDropdown.classList.remove('show');
+            driverSearch.setAttribute('aria-expanded', 'false');
+        }
+
+        function filterDrivers() {
+            const search = driverSearch.value.trim().toLowerCase();
+            let matches = 0;
+
+            driverOptions.forEach(option => {
+                const name = option.dataset.name.toLowerCase();
+                const match = name.includes(search);
+
+                option.style.display = match ? 'flex' : 'none';
+
+                if (match) matches++;
+            });
+
+            driverEmpty.classList.toggle('show', matches === 0);
+        }
+
+        driverSearch.addEventListener('focus', openDriverDropdown);
+
+        driverSearch.addEventListener('input', function() {
+            // Changing the name invalidates previous verification.
+            driverEmail.value = '';
+            resetDriverVerification();
+
+            openDriverDropdown();
+        });
+
+        driverOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const name = this.dataset.name;
+
+                driverSearch.value = name;
+                driverEmail.value = name;
+
+                closeDriverDropdown();
+
+                // Recheck the selected driver against the work email.
+                verifyDriver();
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.driver-select-wrapper')) {
+                closeDriverDropdown();
+            }
+        });
+
+
+        // The submit button stays disabled until verification succeeds.
+
+        submitButton.disabled = true;
+
+
+
+        let driverVerified = false;
+
+        let verificationRequest = 0;
+
+
+
+        function resetDriverVerification() {
+
+            driverVerified = false;
+
+            submitButton.disabled = true;
+
+
+
+            verificationMessage.className = 'field-help mt-2 text-muted';
+
+            verificationMessage.innerHTML =
+
+                '<i class="bi bi-info-circle me-1"></i> Enter your registered work email.';
+
+        }
+
+
+
+        async function verifyDriver() {
+
+            const name = driverName.value.trim();
+
+            const email = driverWorkEmail.value.trim().toLowerCase();
+
+
+
+            const requestId = ++verificationRequest;
+
+
+
+            driverVerified = false;
+
+            submitButton.disabled = true;
+
+
+
+            if (!name || !email) {
+
+                resetDriverVerification();
+
+                return;
+
+            }
+
+
+
+            verificationMessage.className = 'field-help mt-2 text-primary';
+
+            verificationMessage.innerHTML =
+
+                '<span class="spinner-border spinner-border-sm me-1"></span> Checking driver details...';
+
+
+
+            try {
+
+                const response = await fetch('/receipts/api/verify-driver', {
+
+                    method: 'POST',
+
+                    headers: {
+
+                        'Content-Type': 'application/json'
+
+                    },
+
+                    body: JSON.stringify({
+
+                        driver_name: name,
+
+                        driver_email: email
+
+                    })
+
+                });
+
+
+
+                const result = await response.json();
+
+
+
+                // Ignore an older response if the user has changed their details.
+
+                if (requestId !== verificationRequest) return;
+
+
+
+                if (result.valid) {
+
+                    driverVerified = true;
+
+                    submitButton.disabled = false;
+
+
+
+                    verificationMessage.className = 'field-help mt-2 text-success';
+
+                    verificationMessage.innerHTML =
+
+                        '<i class="bi bi-check-circle-fill me-1"></i> ' +
+
+                        'Your driver details have been verified.';
+
+                } else {
+
+                    verificationMessage.className = 'field-help mt-2 text-danger';
+
+                    verificationMessage.innerHTML =
+
+                        '<i class="bi bi-exclamation-circle-fill me-1"></i> ' +
+
+                        result.message;
+
+                }
+
+
+
+            } catch (error) {
+
+                if (requestId !== verificationRequest) return;
+
+
+
+                driverVerified = false;
+
+                submitButton.disabled = true;
+
+
+
+                verificationMessage.className = 'field-help mt-2 text-danger';
+
+                verificationMessage.textContent =
+
+                    'Unable to verify your details. Please try again.';
+
+            }
+
+        }
+
+
+
+        //driverName.addEventListener('change', verifyDriver);
+
+
+
+        driverWorkEmail.addEventListener('input', function () {
+
+            verificationRequest++;
+
+            driverVerified = false;
+
+            submitButton.disabled = true;
+
+
+
+            verificationMessage.className = 'field-help mt-2 text-muted';
+
+            verificationMessage.textContent = 'Checking will begin when you finish entering your email.';
+
+        });
+
+
+
+        driverWorkEmail.addEventListener('blur', verifyDriver);
+
+
+
+        // Prevent submission unless verification has succeeded.
+
+        receiptForm.addEventListener('submit', function (event) {
+
+            if (!driverVerified) {
+
+                event.preventDefault();
+
+                submitButton.disabled = true;
+
+
+
+                verificationMessage.className = 'field-help mt-2 text-danger';
+
+                verificationMessage.textContent =
+
+                    'Please verify your driver name and email before submitting.';
+
+                return;
+
+            }
+
+
+
+            if (!receiptForm.checkValidity()) {
+
+                event.preventDefault();
+
+                return;
+
+            }
+
+
+
+            submitButton.disabled = true;
+
+            submitButton.innerHTML =
+
+                '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+
+        });
+
+
+
+
+
+        const paymentMethod = document.getElementById('paymentMethod');
+
+        const cardDetails = document.getElementById('cardDetails');
+
+        const cardLastFour = document.getElementById('cardLastFour');
+
+        const receiptImage = document.getElementById('receiptImage');
+
+        const filePreview = document.getElementById('filePreview');
+
+        const previewImage = document.getElementById('previewImage');
+
+        const previewName = document.getElementById('previewName');
+
+        const previewSize = document.getElementById('previewSize');
+
+        const uploadTitle = document.getElementById('uploadTitle');
+
+        const uploadSubtitle = document.getElementById('uploadSubtitle');
+
+
+
+        function toggleCardInput() {
+
+            const isCard = paymentMethod.value === 'Personal Card' ||
+
+                           paymentMethod.value === 'Business Card';
+
+
+
+            cardDetails.classList.toggle('show', isCard);
+
+            cardDetails.setAttribute('aria-hidden', String(!isCard));
+
+            cardLastFour.required = isCard;
+
+
+
+            if (!isCard) cardLastFour.value = '';
+
+        }
+
+
+
+        paymentMethod.addEventListener('change', toggleCardInput);
+
+
+
+        receiptImage.addEventListener('change', function () {
+
+            const file = this.files && this.files[0];
+
+
+
+            if (!file) {
+
+                filePreview.classList.remove('show');
+
+                uploadTitle.textContent = 'Choose a receipt photo';
+
+                uploadSubtitle.textContent = 'Tap to browse your files or take a photo';
+
+                previewImage.removeAttribute('src');
+
+                return;
+
+            }
+
+
+
+            if (!file.type.startsWith('image/')) {
+
+                this.value = '';
+
+                filePreview.classList.remove('show');
+
+                uploadTitle.textContent = 'Choose a receipt photo';
+
+                uploadSubtitle.textContent = 'Please select an image file';
+
+                return;
+
+            }
+
+
+
+            uploadTitle.textContent = file.name;
+
+            uploadSubtitle.textContent = 'Receipt image selected';
+
+            previewName.textContent = file.name;
+
+            previewSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+
+
+
+            const reader = new FileReader();
+
+            reader.onload = event => {
+
+                previewImage.src = event.target.result;
+
+                filePreview.classList.add('show');
+
+            };
+
+            reader.readAsDataURL(file);
+
+        });
+
+    </script>
+
+</body>
+
+</html>

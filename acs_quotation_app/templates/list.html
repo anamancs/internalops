@@ -1,96 +1,553 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Saved Quotations — Anaman Concierge Services</title>
-  <link rel="icon" type="image/png" href="{{ url_for('quotation.static', filename='favicon.png') }}">
-  <link rel="stylesheet" href="{{ url_for('quotation.static', filename='css/style.css') }}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Bootstrap CSS & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <title>Saved Quotations | Anaman Concierge Services</title>
 
-  <!-- 📱 Mobile Optimizations -->
-  <style>
-    @media (max-width: 768px) {
-      .page { padding: 10px !important; }
-      .card { padding: 15px !important; }
-      .navbar-brand { font-size: 1.1rem !important; }
-    }
-  </style>
+    <link rel="icon" type="image/png"
+          href="{{ url_for('quotation.static', filename='favicon.png') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('quotation.static', filename='css/style.css') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --quote-navy: #172b4d;
+            --quote-blue: #3b82c4;
+            --quote-bg: #f4f7fb;
+            --quote-border: #e5eaf1;
+            --quote-muted: #718096;
+        }
+
+        body {
+            background: var(--quote-bg);
+            color: #263449;
+            font-family: "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .quotes-navbar {
+            background: var(--quote-navy);
+            padding: 13px 0;
+            box-shadow: 0 3px 12px rgba(15, 35, 65, 0.12);
+        }
+
+        .quotes-navbar .navbar-brand {
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .portal-link {
+            color: #b9d7f5;
+            border: 1px solid rgba(185, 215, 245, 0.45);
+            border-radius: 7px;
+            padding: 7px 12px;
+            font-size: 0.82rem;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .portal-link:hover {
+            background: var(--quote-blue);
+            color: white;
+            border-color: var(--quote-blue);
+        }
+
+        .new-quote-btn {
+            background: var(--quote-blue);
+            color: white;
+            border: 1px solid var(--quote-blue);
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .new-quote-btn:hover {
+            background: #2d6fae;
+            color: white;
+        }
+
+        .acs-logo {
+            max-height: 31px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Main layout */
+        .quotes-container {
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 36px 24px 55px;
+        }
+
+        .quotes-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 26px;
+        }
+
+        .heading-eyebrow {
+            color: var(--quote-blue);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .quotes-heading h1 {
+            color: var(--quote-navy);
+            font-size: 1.85rem;
+            font-weight: 750;
+            margin: 0;
+            letter-spacing: -0.6px;
+        }
+
+        .quotes-heading p {
+            color: var(--quote-muted);
+            font-size: 0.9rem;
+            margin: 7px 0 0;
+        }
+
+        .quotes-count {
+            color: #53657b;
+            background: #eaf1f8;
+            border: 1px solid #dce7f2;
+            padding: 8px 13px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Table panel */
+        .quotes-panel {
+            background: white;
+            border: 1px solid var(--quote-border);
+            border-radius: 13px;
+            box-shadow: 0 5px 22px rgba(30, 55, 90, 0.045);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 23px;
+            border-bottom: 1px solid var(--quote-border);
+        }
+
+        .panel-title {
+            color: var(--quote-navy);
+            font-size: 0.96rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .panel-subtitle {
+            color: var(--quote-muted);
+            font-size: 0.78rem;
+            margin: 4px 0 0;
+        }
+
+        .quotes-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .quotes-table {
+            width: 100%;
+            min-width: 850px;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .quotes-table thead th {
+            background: #f8fafd;
+            color: #718096;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.65px;
+            text-transform: uppercase;
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--quote-border);
+            white-space: nowrap;
+        }
+
+        .quotes-table tbody td {
+            color: #35445a;
+            font-size: 0.83rem;
+            padding: 17px 18px;
+            border-bottom: 1px solid #edf1f5;
+            vertical-align: middle;
+        }
+
+        .quotes-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .quotes-table tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        .quotes-table tbody tr:hover {
+            background: #f9fbfe;
+        }
+
+        .invoice-number {
+            color: #286da8;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .vehicle-name {
+            color: #34445a;
+            font-weight: 600;
+        }
+
+        .event-period {
+            white-space: nowrap;
+        }
+
+        .run-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 27px;
+            padding: 0 8px;
+            background: #eef4fa;
+            color: #365f87;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .quote-total {
+            color: #1d344f;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #f0f6fc;
+            color: #286da8;
+            border: 1px solid #d8e7f5;
+            border-radius: 6px;
+            padding: 7px 11px;
+            font-size: 0.78rem;
+            font-weight: 650;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: 0.2s ease;
+        }
+
+        .pdf-btn:hover {
+            background: #286da8;
+            color: white;
+            border-color: #286da8;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 75px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 76px;
+            height: 76px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f5fa;
+            color: #7295b8;
+            border-radius: 50%;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: var(--quote-navy);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--quote-muted);
+            font-size: 0.87rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-create-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--quote-blue);
+            color: white;
+            border-radius: 7px;
+            padding: 10px 17px;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .empty-create-btn:hover {
+            background: #2d6fae;
+            color: white;
+        }
+
+        .quotes-footer {
+            text-align: center;
+            color: #94a0af;
+            font-size: 0.74rem;
+            padding-top: 25px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .quotes-container {
+                padding: 25px 13px 40px;
+            }
+
+            .quotes-heading {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 13px;
+            }
+
+            .quotes-heading h1 {
+                font-size: 1.55rem;
+            }
+
+            .panel-header {
+                padding: 17px;
+            }
+
+            .quotes-navbar .container {
+                gap: 12px;
+            }
+
+            .acs-logo {
+                display: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .quotes-navbar .navbar-brand {
+                font-size: 0.9rem;
+            }
+
+            .portal-link {
+                padding: 7px 9px;
+            }
+
+            .new-quote-btn {
+                padding: 7px 10px;
+                font-size: 0.77rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- ✅ Responsive Premium ACS Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="background-color: #1a202c; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-      <div class="container flex-wrap">
-          <!-- Left Side -->
-          <div class="d-flex align-items-center gap-2 mb-2 mb-lg-0">
-              <a href="/" class="btn btn-sm" style="border: 1px solid #4A7EBB; color: #4A7EBB;" title="Back to Portal" onmouseover="this.style.backgroundColor='#4A7EBB'; this.style.color='white'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#4A7EBB'">
-                  <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Portal</span>
-              </a>
-              <span class="navbar-brand mb-0 h5 fw-bold text-white">
-                  <i class="bi bi-receipt me-1"></i>Saved Quotes
-              </span>
-          </div>
+    <!-- Navigation -->
+    <nav class="navbar quotes-navbar">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
 
-          <!-- Right Side -->
-          <div class="d-flex align-items-center gap-2">
-              <a href="{{ url_for('quotation.index') }}" class="btn btn-primary btn-sm">+ New Quote</a>
-              <img src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png" alt="ACS Logo" height="30" onerror="this.style.display='none'">
-          </div>
-      </div>
-  </nav>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/" class="portal-link">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    <span class="d-none d-sm-inline">Portal</span>
+                </a>
 
-  <div class="page">
-    <section class="card">
-      {% if quotations %}
-      
-      <!-- ✅ Mobile Fix: table-responsive wrapper -->
-      <div class="table-wrap table-responsive">
-        <table class="pricing-table" style="min-width: 700px;">
-          <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Created</th>
-              <th>Vehicle</th>
-              <th>Event Period</th>
-              <th>Runs</th>
-              <th>Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for q in quotations %}
-            <tr>
-              <td>{{ q.invoice_number }}</td>
-              <td>{{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else '—' }}</td>
-              <td>{{ q.vehicle or '—' }}</td>
-              <td>
-                {% if q.event_end and q.event_end != q.event_start %}
-                  {{ q.event_start }} – {{ q.event_end }}
-                {% else %}
-                  {{ q.event_start or '—' }}
-                {% endif %}
-              </td>
-              <td>{{ q.total_runs or (q.runs()|length) }}</td>
-              <td>${{ '%.2f'|format(q.total_quoted or 0) }}</td>
-              <td><a href="{{ url_for('quotation.download_pdf', qid=q.id) }}" class="btn-sm text-nowrap">PDF</a></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      
-      {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-folder-x text-muted" style="font-size: 3rem;"></i>
-            <p class="section-note mt-3 mb-0">No quotations saved yet.</p>
-            <a href="{{ url_for('quotation.index') }}" class="btn btn-primary mt-3">Create First Quote</a>
+                <span class="navbar-brand mb-0">
+                    <i class="bi bi-receipt-cutoff me-2"></i>
+                    Saved Quotations
+                </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ url_for('quotation.index') }}" class="new-quote-btn">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    New Quote
+                </a>
+
+                <img
+                    src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png"
+                    alt="Anaman Concierge Services"
+                    class="acs-logo"
+                    onerror="this.style.display='none'"
+                >
+            </div>
+
         </div>
-      {% endif %}
-    </section>
-  </div>
+    </nav>
+
+
+    <!-- Main Content -->
+    <main class="quotes-container">
+
+        <div class="quotes-heading">
+            <div>
+                <div class="heading-eyebrow">Quotation Management</div>
+                <h1>Saved Quotations</h1>
+                <p>View previously generated quotations and access their PDF documents.</p>
+            </div>
+
+            {% if quotations %}
+                <div class="quotes-count">
+                    <i class="bi bi-files me-1"></i>
+                    {{ quotations|length }} saved quotation{% if quotations|length != 1 %}s{% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+
+        <section class="quotes-panel">
+
+            {% if quotations %}
+
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Quotation Register</h2>
+                        <p class="panel-subtitle">
+                            Your previously generated quotation records
+                        </p>
+                    </div>
+
+                    <i class="bi bi-layout-text-window-reverse text-secondary fs-5"></i>
+                </div>
+
+                <div class="quotes-table-wrap">
+                    <table class="quotes-table">
+
+                        <thead>
+                            <tr>
+                                <th>Invoice Number</th>
+                                <th>Date Created</th>
+                                <th>Vehicle</th>
+                                <th>Event Period</th>
+                                <th>Runs</th>
+                                <th>Total Quoted</th>
+                                <th>Document</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for q in quotations %}
+                                <tr>
+
+                                    <td>
+                                        <span class="invoice-number">
+                                            {{ q.invoice_number or '—' }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else '—' }}
+                                    </td>
+
+                                    <td>
+                                        <span class="vehicle-name">
+                                            {{ q.vehicle or '—' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="event-period">
+                                        {% if q.event_end and q.event_end != q.event_start %}
+                                            {{ q.event_start or '—' }} – {{ q.event_end }}
+                                        {% else %}
+                                            {{ q.event_start or '—' }}
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <span class="run-count">
+                                            {{ q.total_runs or (q.runs()|length) }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="quote-total">
+                                            ${{ '%.2f'|format(q.total_quoted or 0) }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <a
+                                            href="{{ url_for('quotation.download_pdf', qid=q.id) }}"
+                                            class="pdf-btn"
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                            View PDF
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            {% else %}
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        <i class="bi bi-folder2-open"></i>
+                    </div>
+
+                    <h3>No Quotations Available</h3>
+
+                    <p>
+                        You have not generated any quotations yet.
+                        Create a new quotation to get started.
+                    </p>
+
+                    <a href="{{ url_for('quotation.index') }}" class="empty-create-btn">
+                        <i class="bi bi-plus-lg"></i>
+                        Create First Quote
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <footer class="quotes-footer">
+            © 2026 Anaman Concierge Services, LLC. All rights reserved.
+        </footer>
+
+    </main>
+
 </body>
 </html>

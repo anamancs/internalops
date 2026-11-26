@@ -1,0 +1,1335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Copilot | ACS Driver Portal</title>
+
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --acs-navy: #172337;
+            --acs-blue: #2864dc;
+            --acs-blue-dark: #1d4fb5;
+            --acs-teal: #0b8f91;
+            --acs-ink: #1d2b3f;
+            --acs-muted: #718096;
+            --acs-line: #e3eaf2;
+            --acs-bg: #f2f5fa;
+            --acs-card: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--acs-bg);
+            color: var(--acs-ink);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        /* NAVIGATION - SHARED ACS PORTAL DESIGN */
+
+        .topbar {
+            background: var(--acs-navy);
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .topbar-inner {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 9px;
+            transition: all 0.2s ease;
+        }
+
+        .portal-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 750;
+            letter-spacing: -0.2px;
+        }
+
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 17px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2864dc, #0b8f91);
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255,255,255,0.58);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        /* PAGE LAYOUT */
+
+        .page-wrapper {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 34px 24px 50px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .page-heading h1 {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            margin: 0 0 7px;
+            color: var(--acs-navy);
+        }
+
+        .page-heading p {
+            color: var(--acs-muted);
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .availability {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e8f7f1;
+            color: #16845e;
+            border: 1px solid #ccefe0;
+            padding: 8px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .availability-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #20ad77;
+        }
+
+        /* ADMIN KNOWLEDGE BASE */
+
+        .admin-card {
+            background: #fff;
+            border: 1px solid var(--acs-line);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 12px rgba(23,35,55,0.035);
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 17px;
+        }
+
+        .section-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            background: #edf3ff;
+            color: var(--acs-blue);
+            display: grid;
+            place-items: center;
+            font-size: 17px;
+        }
+
+        .section-heading h5 {
+            font-size: 14px;
+            font-weight: 750;
+            margin: 0 0 3px;
+            color: var(--acs-navy);
+        }
+
+        .section-heading p {
+            font-size: 11px;
+            color: var(--acs-muted);
+            margin: 0;
+        }
+
+        .form-control,
+        .form-select {
+            border-color: var(--acs-line);
+            border-radius: 9px;
+            font-size: 13px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--acs-blue);
+            box-shadow: 0 0 0 3px rgba(40,100,220,0.10);
+        }
+
+        .btn-acs {
+            background: var(--acs-blue);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 10px 16px;
+            transition: 0.2s ease;
+        }
+
+        .btn-acs:hover {
+            background: var(--acs-blue-dark);
+            color: #fff;
+        }
+
+        .btn-acs:disabled {
+            opacity: 0.6;
+        }
+
+        .admin-note {
+            color: var(--acs-muted);
+            font-size: 11px;
+            margin: 10px 0 18px;
+        }
+
+        .document-table {
+            border: 1px solid var(--acs-line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .document-table table {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .document-table th {
+            background: #f7f9fc;
+            color: #617086;
+            font-weight: 700;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--acs-line);
+        }
+
+        .document-table td {
+            padding: 11px 14px;
+            vertical-align: middle;
+        }
+
+        /* CHAT CARD */
+
+        .chat-card {
+            background: #fff;
+            border: 1px solid var(--acs-line);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(23,35,55,0.055);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 19px 23px;
+            border-bottom: 1px solid var(--acs-line);
+            background: #fff;
+        }
+
+        .copilot-identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .copilot-avatar {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 19px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--acs-blue), var(--acs-teal));
+            box-shadow: 0 4px 12px rgba(40,100,220,0.2);
+        }
+
+        .copilot-identity h5 {
+            margin: 0 0 4px;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--acs-navy);
+        }
+
+        .copilot-identity small {
+            color: var(--acs-muted);
+            font-size: 11px;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .chat-header-actions button {
+            border: 1px solid var(--acs-line);
+            background: #fff;
+            color: #68788e;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+        }
+
+        .chat-header-actions button:hover {
+            color: var(--acs-blue);
+            background: #f5f8ff;
+        }
+
+        /* CHAT MESSAGES */
+
+        .chat-container {
+            height: 490px;
+            overflow-y: auto;
+            padding: 26px 28px;
+            background: #fbfcfe;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #dce3ec;
+            border-radius: 10px;
+        }
+
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            margin-bottom: 19px;
+            max-width: 85%;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 29px;
+            height: 29px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: #eaf0fb;
+            color: var(--acs-blue);
+            font-size: 13px;
+        }
+
+        .message-row.user .message-avatar {
+            background: var(--acs-navy);
+            color: #fff;
+        }
+
+        .message-content {
+            min-width: 0;
+        }
+
+        .message-sender {
+            color: var(--acs-muted);
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .message-row.user .message-sender {
+            text-align: right;
+        }
+
+        .chat-bubble {
+            padding: 13px 16px;
+            border-radius: 15px;
+            line-height: 1.65;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-bubble.bot {
+            background: #fff;
+            color: var(--acs-ink);
+            border: 1px solid var(--acs-line);
+            border-bottom-left-radius: 4px;
+            white-space: normal;
+        }
+
+        .chat-bubble.user {
+            background: var(--acs-blue);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            white-space: pre-wrap;
+        }
+
+        .chat-bubble.typing {
+            color: var(--acs-muted);
+            font-style: italic;
+        }
+
+        /* AI RESPONSE FORMATTING */
+
+        .chat-bubble.bot p {
+            margin: 0 0 11px;
+        }
+
+        .chat-bubble.bot p:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-bubble.bot h1,
+        .chat-bubble.bot h2 {
+            color: var(--acs-navy);
+            font-size: 16px;
+            font-weight: 800;
+            margin: 17px 0 9px;
+            line-height: 1.4;
+        }
+
+        .chat-bubble.bot h3,
+        .chat-bubble.bot h4 {
+            color: var(--acs-blue);
+            font-size: 14px;
+            font-weight: 750;
+            margin: 14px 0 7px;
+        }
+
+        .chat-bubble.bot h1:first-child,
+        .chat-bubble.bot h2:first-child,
+        .chat-bubble.bot h3:first-child {
+            margin-top: 0;
+        }
+
+        .chat-bubble.bot strong {
+            color: var(--acs-navy);
+            font-weight: 800;
+        }
+
+        .chat-bubble.bot ul,
+        .chat-bubble.bot ol {
+            padding-left: 22px;
+            margin: 8px 0 13px;
+        }
+
+        .chat-bubble.bot li {
+            margin-bottom: 5px;
+            padding-left: 3px;
+        }
+
+        .chat-bubble.bot li::marker {
+            color: var(--acs-blue);
+        }
+
+        .chat-bubble.bot blockquote {
+            border-left: 3px solid var(--acs-teal);
+            background: #f0f8f8;
+            padding: 10px 13px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .chat-bubble.bot table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+
+        .chat-bubble.bot th {
+            background: var(--acs-navy);
+            color: #fff;
+            padding: 9px;
+            text-align: left;
+        }
+
+        .chat-bubble.bot td {
+            padding: 9px;
+            border-bottom: 1px solid var(--acs-line);
+        }
+
+        .chat-bubble.bot tr:nth-child(even) {
+            background: #f6f8fb;
+        }
+
+        .chat-bubble.bot hr {
+            border: 0;
+            border-top: 1px solid var(--acs-line);
+            margin: 15px 0;
+        }
+
+        .chat-bubble.bot code {
+            background: #f0f3f8;
+            color: #b42318;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 5px;
+        }
+
+        .typing-dots span {
+            width: 5px;
+            height: 5px;
+            background: #8b9ab0;
+            border-radius: 50%;
+            animation: pulse 1s infinite alternate;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.3; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* CHAT INPUT */
+
+        .chat-footer {
+            padding: 20px 24px 17px;
+            background: #fff;
+            border-top: 1px solid var(--acs-line);
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            height: 49px;
+            border-radius: 11px !important;
+            padding: 0 16px;
+            font-size: 13px;
+            background: #f9fbfd;
+        }
+
+        .send-button {
+            width: 49px;
+            height: 49px;
+            flex-shrink: 0;
+            border-radius: 11px;
+            border: none;
+            color: #fff;
+            background: var(--acs-blue);
+            font-size: 17px;
+            transition: 0.2s ease;
+        }
+
+        .send-button:hover {
+            background: var(--acs-blue-dark);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-hint {
+            color: #99a5b5;
+            font-size: 10px;
+            margin-top: 10px;
+        }
+
+        .chat-error {
+            color: #c0392b;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 768px) {
+            .page-wrapper {
+                padding: 25px 15px 35px;
+            }
+
+            .page-heading {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .page-heading h1 {
+                font-size: 22px;
+            }
+
+            .chat-container {
+                height: 55vh;
+                min-height: 350px;
+                padding: 19px 14px;
+            }
+
+            .message-row {
+                max-width: 94%;
+            }
+
+            .chat-header {
+                padding: 15px;
+            }
+
+            .chat-footer {
+                padding: 15px;
+            }
+
+            .admin-card {
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                min-height: 62px;
+            }
+
+            .topbar-inner {
+                padding: 0 16px;
+            }
+
+            .portal-link {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .brand {
+                gap: 8px;
+                font-size: 12px;
+            }
+
+            .brand-mark {
+                width: 33px;
+                height: 33px;
+                font-size: 15px;
+            }
+
+            .brand small {
+                font-size: 9px;
+            }
+
+            .availability {
+                font-size: 10px;
+            }
+
+            .chat-header-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SHARED ACS NAVBAR -->
+
+    <nav class="topbar">
+        <div class="topbar-inner">
+            <a href="/" class="portal-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Portal</span>
+            </a>
+
+            <div class="brand">
+                <span class="brand-mark">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </span>
+                <span>
+                    ACS Dispatch Portal
+                    <small>Internal Chatbot &amp; AI Assistant</small>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+
+    <main class="page-wrapper">
+
+        <!-- PAGE HEADING -->
+
+        <div class="page-heading">
+            <div>
+                <h1>Dispatch Copilot</h1>
+                <p>Your internal AI assistant for rates, fleet information and operating procedures.</p>
+            </div>
+
+            <div class="availability">
+                <span class="availability-dot"></span>
+                Operations Assistant
+            </div>
+        </div>
+
+
+        <!-- ADMIN KNOWLEDGE BASE -->
+
+        {% if is_admin %}
+        <section class="admin-card">
+
+            <div class="section-heading">
+                <div class="section-icon">
+                    <i class="bi bi-database-gear"></i>
+                </div>
+                <div>
+                    <h5>Knowledge Base Management</h5>
+                    <p>Manage the documents used by Dispatch Copilot.</p>
+                </div>
+            </div>
+
+            <form id="uploadForm" class="d-flex flex-wrap gap-2 align-items-center">
+
+                <input
+                    type="file"
+                    id="kbFile"
+                    class="form-control"
+                    accept=".pdf,.csv,.xlsx,.docx"
+                    style="max-width: 420px;"
+                >
+
+                <button type="submit" class="btn-acs" id="uploadBtn">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>
+                    Upload Document
+                </button>
+
+            </form>
+
+            <div class="admin-note">
+                Supported formats: PDF, CSV, XLSX and DOCX. Text is extracted and saved to the database. Files are not retained on the server.
+            </div>
+
+            <div class="document-table table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Document Name</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for doc in docs %}
+                        <tr>
+                            <td>
+                                <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                {{ doc.filename }}
+                            </td>
+                            <td class="text-end">
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    type="button"
+                                    onclick="deleteDoc({{ doc.id }})"
+                                >
+                                    <i class="bi bi-trash3 me-1"></i>
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">
+                                No documents uploaded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+        {% endif %}
+
+
+        <!-- CHAT INTERFACE -->
+
+        <section class="chat-card">
+
+            <div class="chat-header">
+
+                <div class="copilot-identity">
+                    <div class="copilot-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+
+                    <div>
+                        <h5>ACS Dispatch Assistant</h5>
+                        <small>Rates, fleet availability &amp; operational information</small>
+                    </div>
+                </div>
+
+                <div class="chat-header-actions">
+                    <button type="button" onclick="clearChat()" title="Clear conversation">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- MESSAGES -->
+
+            <!--<div class="chat-container" id="chat-box">
+
+                <div class="message-row bot">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+
+                    <div class="message-content">
+                        <div class="message-sender">ACS DISPATCH COPILOT</div>
+                        <div class="chat-bubble bot">
+                            Hello! I am your ACS Dispatch Copilot.
+
+                            I can help you quickly retrieve company rates and operational policies while you are assisting clients. 
+
+                            What information do you need?
+                        </div>
+                    </div>  
+                </div>
+
+            </div>-->
+            <div class="chat-container" id="chat-box"></div>
+
+
+            <!-- INPUT AREA -->
+
+            <div class="chat-footer">
+
+                <div class="chat-input-group">
+
+                    <input
+                        type="text"
+                        id="chat-input"
+                        class="form-control chat-input"
+                        placeholder="Ask about rates, vehicles, policies or operations..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        class="send-button"
+                        id="send-button"
+                        type="button"
+                        onclick="sendChat()"
+                        title="Send message"
+                    >
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+
+                </div>
+
+                <div class="input-hint">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Internal operations assistant. Verify important pricing and scheduling details before confirming them with clients.
+                </div>
+
+                <div id="chat-error" class="chat-error d-none"></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <script>
+
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatError = document.getElementById('chat-error');
+
+        let isSending = false;
+
+        // CONVERSATION SESSION STORAGE
+
+        const CHAT_STORAGE_KEY = 'acs_dispatch_copilot_chat';
+        const CHAT_SESSION_DURATION = 4 * 60 * 1000; // 4 minutes
+
+        
+        const welcomeMessage = [
+                "Hello! I am your ACS Dispatch Copilot.",
+                "",
+                "I can help you quickly retrieve company rates and operational policies while you are assisting clients.",
+                "",
+                "What information do you need?"
+            ].join("\n");
+
+        let conversationHistory = [];
+
+
+        // SAVE CONVERSATION
+
+        function saveConversation() {
+
+            try {
+
+                const sessionData = {
+                    messages: conversationHistory,
+                    expiresAt: Date.now() + CHAT_SESSION_DURATION
+                };
+
+                sessionStorage.setItem(
+                    CHAT_STORAGE_KEY,
+                    JSON.stringify(sessionData)
+                );
+
+            } catch (error) {
+                console.warn('Unable to save chat session:', error);
+            }
+        }
+
+
+        // RESTORE CONVERSATION
+
+        function restoreConversation() {
+
+            try {
+
+                const savedData = sessionStorage.getItem(CHAT_STORAGE_KEY);
+
+                if (!savedData) {
+                    startNewConversation();
+                    return;
+                }
+
+                const sessionData = JSON.parse(savedData);
+
+                // Check whether the session has expired
+                if (
+                    !sessionData.expiresAt ||
+                    Date.now() > sessionData.expiresAt ||
+                    !Array.isArray(sessionData.messages)
+                ) {
+
+                    sessionStorage.removeItem(CHAT_STORAGE_KEY);
+                    startNewConversation();
+                    return;
+
+                }
+
+                conversationHistory = sessionData.messages;
+
+                chatBox.innerHTML = '';
+
+                // Restore previous messages without saving them again
+                conversationHistory.forEach(item => {
+
+                    if (
+                        item &&
+                        typeof item.message === 'string' &&
+                        ['user', 'bot'].includes(item.sender)
+                    ) {
+                        addMessage(item.message, item.sender, false);
+                    }
+
+                });
+
+                if (conversationHistory.length === 0) {
+                    startNewConversation();
+                }
+
+            } catch (error) {
+
+                console.warn('Unable to restore chat session:', error);
+
+                sessionStorage.removeItem(CHAT_STORAGE_KEY);
+                startNewConversation();
+
+            }
+        }
+
+
+        // START A FRESH CONVERSATION
+
+        function startNewConversation() {
+
+            conversationHistory = [];
+            chatBox.innerHTML = '';
+
+            addMessage(welcomeMessage, 'bot', false);
+
+            conversationHistory.push({
+                sender: 'bot',
+                message: welcomeMessage
+            });
+
+        }
+
+
+        // CREATE MESSAGE ELEMENTS AND SAVE CONVERSATION
+
+        function addMessage(message, sender, shouldSave = true) {
+
+            const row = document.createElement('div');
+            row.className = `message-row ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+
+            const icon = document.createElement('i');
+
+            icon.className = sender === 'user'
+                ? 'bi bi-person-fill'
+                : 'bi bi-robot';
+
+            avatar.appendChild(icon);
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const senderLabel = document.createElement('div');
+            senderLabel.className = 'message-sender';
+
+            senderLabel.textContent = sender === 'user'
+                ? 'YOU'
+                : 'ACS DISPATCH COPILOT';
+
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${sender}`;
+
+            if (
+                sender === 'bot' &&
+                typeof marked !== 'undefined' &&
+                typeof DOMPurify !== 'undefined'
+            ) {
+
+                const formattedHTML = marked.parse(message);
+
+                bubble.innerHTML = DOMPurify.sanitize(formattedHTML);
+
+            } else {
+
+                bubble.textContent = message;
+
+            }
+
+            content.appendChild(senderLabel);
+            content.appendChild(bubble);
+
+            row.appendChild(avatar);
+            row.appendChild(content);
+
+            chatBox.appendChild(row);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+
+            // Save conversation history
+            if (shouldSave) {
+
+                conversationHistory.push({
+                    sender: sender,
+                    message: message
+                });
+
+                saveConversation();
+
+            }
+
+            return row;
+        }
+
+
+        // TYPING INDICATOR
+
+        function showTyping() {
+
+            const row = document.createElement('div');
+            row.className = 'message-row bot';
+            row.id = 'typing-indicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<i class="bi bi-robot"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const label = document.createElement('div');
+            label.className = 'message-sender';
+            label.textContent = 'ACS DISPATCH COPILOT';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble bot typing';
+            bubble.textContent = 'Checking operations information';
+
+            const dots = document.createElement('span');
+            dots.className = 'typing-dots';
+
+            for (let i = 0; i < 3; i++) {
+                dots.appendChild(document.createElement('span'));
+            }
+
+            bubble.appendChild(dots);
+            content.appendChild(label);
+            content.appendChild(bubble);
+
+            row.appendChild(avatar);
+            row.appendChild(content);
+
+            chatBox.appendChild(row);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+
+        // SEND CHAT MESSAGE
+
+        async function sendChat() {
+
+            const message = chatInput.value.trim();
+
+            if (!message || isSending) return;
+
+            isSending = true;
+            sendButton.disabled = true;
+            chatError.classList.add('d-none');
+
+            addMessage(message, 'user');
+
+            chatInput.value = '';
+
+            showTyping();
+
+            try {
+
+                const response = await fetch('/chatbot/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                const typing = document.getElementById('typing-indicator');
+
+                if (typing) typing.remove();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Unable to process your request.');
+                }
+
+                addMessage(
+                    data.reply || 'I could not generate a response. Please try again.',
+                    'bot'
+                );
+
+            } catch (error) {
+
+                const typing = document.getElementById('typing-indicator');
+
+                if (typing) typing.remove();
+
+                addMessage(
+                    'I am unable to retrieve that information right now. Please try again.',
+                    'bot'
+                );
+
+                chatError.textContent = error.message;
+                chatError.classList.remove('d-none');
+
+            } finally {
+
+                isSending = false;
+                sendButton.disabled = false;
+                chatInput.focus();
+
+            }
+        }
+
+
+        // ENTER TO SEND
+
+        chatInput.addEventListener('keydown', function(event) {
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChat();
+            }
+
+        });
+
+
+        // CLEAR CONVERSATION
+
+        // CLEAR CONVERSATION
+
+        function clearChat() {
+
+            if (!confirm('Clear this conversation?')) return;
+
+            sessionStorage.removeItem(CHAT_STORAGE_KEY);
+
+            startNewConversation();
+
+            chatError.classList.add('d-none');
+
+        }
+
+
+        // ADMIN DOCUMENT UPLOAD
+
+        const uploadForm = document.getElementById('uploadForm');
+
+        if (uploadForm) {
+
+            uploadForm.addEventListener('submit', async function(event) {
+
+                event.preventDefault();
+
+                const fileInput = document.getElementById('kbFile');
+                const uploadBtn = document.getElementById('uploadBtn');
+
+                if (!fileInput.files.length) {
+                    alert('Please select a document first.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Processing...';
+
+                try {
+
+                    const response = await fetch('/chatbot/admin/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    alert(data.message || data.error || 'Upload completed.');
+
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+
+                } catch (error) {
+
+                    alert('Unable to upload the document. Please try again.');
+
+                } finally {
+
+                    uploadBtn.disabled = false;
+                    uploadBtn.innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i> Upload Document';
+
+                }
+
+            });
+
+        }
+
+
+        // ADMIN DOCUMENT DELETE
+
+        async function deleteDoc(id) {
+
+            if (!confirm('Are you sure you want to delete this document from the AI knowledge base?')) {
+                return;
+            }
+
+            try {
+
+                const response = await fetch(`/chatbot/admin/delete/${id}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                alert(data.message || data.error || 'Request completed.');
+
+                if (response.ok) {
+                    window.location.reload();
+                }
+
+            } catch (error) {
+
+                alert('Unable to delete the document. Please try again.');
+
+            }
+        }
+
+        // RESTORE CHAT WHEN THE PAGE LOADS
+
+        restoreConversation();
+
+    </script>
+
+</body>
+</html>

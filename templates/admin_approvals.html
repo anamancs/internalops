@@ -1,0 +1,1024 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Approvals | ACS Portal</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --acs-navy: #172337;
+            --acs-blue: #2864dc;
+            --acs-blue-dark: #1d4fb5;
+            --acs-teal: #0b8f91;
+            --acs-ink: #1d2b3f;
+            --acs-muted: #718096;
+            --acs-line: #e3eaf2;
+            --acs-bg: #f2f5fa;
+            --acs-card: #ffffff;
+        }
+
+        body {
+            background: var(--acs-bg);
+            color: var(--acs-ink);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* STANDARD ACS NAVBAR */
+
+        .topbar {
+            min-height: 68px;
+            background: var(--acs-navy);
+            box-shadow: 0 5px 25px rgba(16, 26, 48, .12);
+        }
+
+        .topbar-inner {
+            width: min(100% - 40px, 1260px);
+            min-height: 68px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 9px;
+            color: rgba(255,255,255,.88);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: .2s ease;
+        }
+
+        .portal-link:hover {
+            color: white;
+            background: rgba(255,255,255,.09);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2864dc, #0b8f91);
+            color: white;
+            font-size: 17px;
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255,255,255,.58);
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 9px;
+            color: rgba(255,255,255,.85);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 650;
+            transition: .2s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(220,53,69,.15);
+            border-color: #dc5967;
+            color: #ffb7bf;
+        }
+
+        /* PAGE LAYOUT */
+
+        .page-container {
+            width: min(100% - 40px, 1260px);
+            margin: 30px auto 55px;
+        }
+
+        .page-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 23px;
+        }
+
+        .page-heading h1 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            margin: 0 0 5px;
+            color: var(--acs-ink);
+        }
+
+        .page-heading p {
+            color: var(--acs-muted);
+            font-size: .88rem;
+            margin: 0;
+        }
+
+        .admin-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 12px;
+            background: #edf4ff;
+            border: 1px solid #dce9ff;
+            border-radius: 30px;
+            color: var(--acs-blue);
+            font-size: .74rem;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        /* SUMMARY CARDS */
+
+        .summary-card {
+            background: var(--acs-card);
+            border: 1px solid var(--acs-line);
+            border-radius: 13px;
+            padding: 17px 19px;
+            height: 100%;
+            box-shadow: 0 3px 12px rgba(23,43,77,.035);
+        }
+
+        .summary-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 13px;
+        }
+
+        .summary-icon {
+            width: 37px;
+            height: 37px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .summary-label {
+            color: var(--acs-muted);
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .summary-value {
+            color: var(--acs-ink);
+            font-size: 1.8rem;
+            font-weight: 850;
+            line-height: 1.2;
+        }
+
+        .summary-pending .summary-icon {
+            background: #fff5df;
+            color: #bd7900;
+        }
+
+        .summary-approved .summary-icon {
+            background: #e8f7ef;
+            color: #16845b;
+        }
+
+        .summary-paid .summary-icon {
+            background: #edf4ff;
+            color: var(--acs-blue);
+        }
+
+        .summary-rejected .summary-icon {
+            background: #fff0f1;
+            color: #dc3545;
+        }
+
+        /* RECEIPT TABLE PANEL */
+
+        .receipt-panel {
+            background: white;
+            border: 1px solid var(--acs-line);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(23,43,77,.045);
+            margin-top: 24px;
+        }
+
+        .panel-heading {
+            padding: 21px 23px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--acs-line);
+        }
+
+        .panel-heading h5 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .panel-heading p {
+            color: var(--acs-muted);
+            font-size: .79rem;
+            margin: 4px 0 0;
+        }
+
+        .receipt-count {
+            padding: 6px 11px;
+            border-radius: 20px;
+            background: #f0f4f9;
+            color: #53657c;
+            font-size: .72rem;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .table-wrap {
+            padding: 0 20px 10px;
+        }
+
+        .receipt-table {
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .receipt-table thead th {
+            padding: 15px 12px;
+            background: #f7f9fc;
+            border-bottom: 1px solid var(--acs-line);
+            color: #718096;
+            font-size: .69rem;
+            font-weight: 800;
+            letter-spacing: .045em;
+            text-transform: uppercase;
+        }
+
+        .receipt-table tbody td {
+            padding: 16px 12px;
+            border-color: #edf1f6;
+            color: #405168;
+            font-size: .83rem;
+            vertical-align: middle;
+        }
+
+        .receipt-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .driver-name {
+            color: var(--acs-ink);
+            font-weight: 750;
+            font-size: .84rem;
+        }
+
+        .driver-email {
+            display: block;
+            color: var(--acs-muted);
+            font-size: .73rem;
+            margin-top: 3px;
+        }
+
+        .amount {
+            color: var(--acs-ink);
+            font-weight: 800;
+        }
+
+        .payment-details {
+            display: block;
+            color: var(--acs-muted);
+            font-size: .72rem;
+            margin-top: 4px;
+        }
+
+        /* STATUS BADGES */
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: .69rem;
+            font-weight: 750;
+        }
+
+        .status-pending {
+            background: #fff5df;
+            color: #986400;
+        }
+
+        .status-approved {
+            background: #e8f7ef;
+            color: #16845b;
+        }
+
+        .status-paid {
+            background: #edf4ff;
+            color: #2864dc;
+        }
+
+        .status-rejected {
+            background: #fff0f1;
+            color: #c52e40;
+        }
+
+        /* ACTION BUTTONS */
+
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn {
+            border-radius: 7px;
+            font-size: .72rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            white-space: nowrap;
+        }
+
+        .view-btn {
+            border-color: #d7e4f7;
+            color: var(--acs-blue);
+            background: #f5f8ff;
+        }
+
+        .view-btn:hover {
+            background: var(--acs-blue);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 55px 20px !important;
+            color: var(--acs-muted) !important;
+        }
+
+        .empty-state i {
+            display: block;
+            font-size: 2rem;
+            color: #a6b4c5;
+            margin-bottom: 10px;
+        }
+
+        .empty-state strong {
+            display: block;
+            color: var(--acs-ink);
+            font-size: .92rem;
+            margin-bottom: 4px;
+        }
+
+        .empty-state span {
+            font-size: .8rem;
+        }
+
+        /* RESPONSIVE */
+
+        @media(max-width: 767px) {
+            .topbar-inner {
+                width: calc(100% - 28px);
+                min-height: 62px;
+            }
+
+            .topbar {
+                min-height: 62px;
+            }
+
+            .brand {
+                font-size: 12px;
+                gap: 8px;
+            }
+
+            .brand-mark {
+                width: 33px;
+                height: 33px;
+            }
+
+            .brand small {
+                font-size: 9px;
+            }
+
+            .logout-btn {
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .page-container {
+                width: calc(100% - 28px);
+                margin-top: 23px;
+            }
+
+            .page-heading {
+                align-items: flex-start;
+            }
+
+            .page-heading h1 {
+                font-size: 1.3rem;
+            }
+
+            .admin-label {
+                font-size: .65rem;
+                padding: 7px 9px;
+            }
+
+            .panel-heading {
+                padding: 17px;
+            }
+
+            .table-wrap {
+                padding: 0 12px 8px;
+            }
+
+            .receipt-table thead th,
+            .receipt-table tbody td {
+                padding: 12px 10px;
+            }
+        }
+
+        @media(max-width: 420px) {
+            .brand small {
+                display: none;
+            }
+
+            .portal-link {
+                padding: 8px 10px;
+            }
+
+            .page-heading {
+                flex-direction: column;
+            }
+        }
+
+        .summary-claims .summary-icon {
+            background: #eaf2ff;
+            color: var(--acs-blue);
+        }
+
+        .summary-claims .summary-value {
+            color: var(--acs-blue);
+            font-size: 1.55rem;
+        }
+
+
+
+        #receiptPeriod,
+        #receiptMonth {
+            min-height: 38px;
+            font-size: 12px;
+            font-weight: 600;
+            border-color: var(--acs-line);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- STANDARD ACS NAVBAR -->
+
+    <nav class="topbar">
+        <div class="topbar-inner">
+
+            <a href="/" class="portal-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Portal</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+
+                <div class="brand">
+                    <span class="brand-mark">
+                        <i class="bi bi-receipt-cutoff"></i>
+                    </span>
+
+                    <span>
+                        ACS Receipt Approvals
+                        <small>Driver expense management</small>
+                    </span>
+                </div>
+
+                <a href="/auth/logout" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="d-none d-sm-inline">Logout</span>
+                </a>
+
+            </div>
+
+        </div>
+    </nav>
+
+
+    <main class="page-container">
+
+        <!-- PAGE HEADING -->
+
+        <section class="page-heading">
+            <div>
+                <h1>Receipt Approvals</h1>
+                <p>Review and manage receipts submitted by ACS drivers.</p>
+            </div>
+
+            <span class="admin-label">
+                <i class="bi bi-shield-lock-fill"></i>
+                Administrative Access
+            </span>
+        </section>
+
+
+
+        <!-- SUMMARY CARDS -->
+
+        {% set pending_count = receipts | selectattr('status', 'equalto', 'Pending') | list | length %}
+        {% set approved_count = receipts | selectattr('status', 'equalto', 'Approved') | list | length %}
+        {% set paid_count = receipts | selectattr('status', 'equalto', 'Paid') | list | length %}
+        {% set rejected_count = receipts | selectattr('status', 'equalto', 'Rejected') | list | length %}
+
+        <div class="row g-3" id="receiptSummary">
+
+            <div class="col-6 col-xl">
+                <div class="summary-card summary-claims">
+                    <div class="summary-top">
+                        <span class="summary-label">Total Claims</span>
+                        <span class="summary-icon"><i class="bi bi-currency-dollar"></i></span>
+                    </div>
+                    <div class="summary-value" id="totalClaimsAmount">$0.00</div>
+                    <!--<small class="text-muted">Submitted claim value</small>-->
+                </div>
+            </div>
+
+            <div class="col-6 col-xl">
+                <div class="summary-card summary-pending">
+                    <div class="summary-top">
+                        <span class="summary-label">Pending Review</span>
+                        <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
+                    </div>
+                    <div class="summary-value" id="pendingCount">{{ pending_count }}</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl">
+                <div class="summary-card summary-approved">
+                    <div class="summary-top">
+                        <span class="summary-label">Approved</span>
+                        <span class="summary-icon"><i class="bi bi-check-circle"></i></span>
+                    </div>
+                    <div class="summary-value" id="approvedCount">{{ approved_count }}</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl">
+                <div class="summary-card summary-paid">
+                    <div class="summary-top">
+                        <span class="summary-label">Paid</span>
+                        <span class="summary-icon"><i class="bi bi-wallet2"></i></span>
+                    </div>
+                    <div class="summary-value" id="paidCount">{{ paid_count }}</div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl">
+                <div class="summary-card summary-rejected">
+                    <div class="summary-top">
+                        <span class="summary-label">Rejected</span>
+                        <span class="summary-icon"><i class="bi bi-x-circle"></i></span>
+                    </div>
+                    <div class="summary-value" id="rejectedCount">{{ rejected_count }}</div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- RECEIPT DATE FILTER -->
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 mb-3">
+
+            <div>
+                <h6 class="fw-bold mb-1">Receipt Submissions</h6>
+                <small class="text-muted">Filter claims by submission date.</small>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+
+                <select id="receiptPeriod" class="form-select" style="width:170px;">
+                    <option value="all">All Time</option>
+                    <option value="this_month" selected>This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="custom">Specific Month</option>
+                </select>
+
+                <input type="month"
+                    id="receiptMonth"
+                    class="form-control"
+                    style="width:165px; display:none;">
+
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="resetReceiptFilter">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECEIPTS TABLE -->
+
+        <section class="receipt-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <h5>
+                        <i class="bi bi-file-earmark-check me-2 text-primary"></i>
+                        Submitted Receipts
+                    </h5>
+                    <p>Review driver submissions and update their payment status.</p>
+                </div>
+
+                <span id="receiptCount">{{ receipts | length }}</span> RECEIPTS
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-responsive">
+
+                    <table class="table receipt-table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Driver</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Payment Info</th>
+                                <th>Receipt</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for r in receipts %}
+
+                            <tr data-receipt-row
+                                data-date="{{ r.date }}"
+                                data-amount="{{ r.amount }}"
+                                data-status="{{ r.status }}">
+
+                                <td>
+                                    <span class="driver-name">{{ r.driver_name }}</span>
+                                    <span class="driver-email">{{ r.driver_email }}</span>
+                                </td>
+
+                                <td>{{ r.date }}</td>
+
+                                <td>{{ r.category }}</td>
+
+                                <td>
+                                    <span class="amount">
+                                        ${{ "%.2f"|format(r.amount) }}
+                                    </span>
+                                </td>
+
+                                <td>
+
+                                    {% if r.payment_method == 'Cash' %}
+
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                                            Cash
+                                        </span>
+
+                                    {% elif r.payment_method %}
+
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">
+                                            {{ r.payment_method }}
+                                        </span>
+
+                                        <span class="payment-details">
+                                            •••• {{ r.card_last_four }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="text-muted">—</span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    <a href="{{ r.image_url }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-sm action-btn view-btn">
+                                        <i class="bi bi-image me-1"></i>
+                                        View
+                                    </a>
+                                </td>
+
+                                <td>
+
+                                    {% if r.status == 'Pending' %}
+
+                                        <span class="status-badge status-pending">
+                                            <i class="bi bi-clock"></i>
+                                            Pending
+                                        </span>
+
+                                    {% elif r.status == 'Approved' %}
+
+                                        <span class="status-badge status-approved">
+                                            <i class="bi bi-check-circle"></i>
+                                            Approved
+                                        </span>
+
+                                    {% elif r.status == 'Paid' %}
+
+                                        <span class="status-badge status-paid">
+                                            <i class="bi bi-wallet2"></i>
+                                            Paid
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge status-rejected">
+                                            <i class="bi bi-x-circle"></i>
+                                            Rejected
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if r.status == 'Pending' %}
+
+                                        <div class="action-group">
+                                            <button class="btn btn-sm btn-success action-btn"
+                                                    onclick="updateStatus({{ r.id }}, 'Approved')">
+                                                <i class="bi bi-check-lg"></i>
+                                                Approve
+                                            </button>
+
+                                            <button class="btn btn-sm btn-outline-danger action-btn"
+                                                    onclick="updateStatus({{ r.id }}, 'Rejected')">
+                                                <i class="bi bi-x-lg"></i>
+                                                Reject
+                                            </button>
+                                        </div>
+
+                                    {% elif r.status == 'Approved' %}
+
+                                        <button class="btn btn-sm btn-primary action-btn"
+                                                onclick="updateStatus({{ r.id }}, 'Paid')">
+                                            <i class="bi bi-cash-coin me-1"></i>
+                                            Mark Paid
+                                        </button>
+
+                                    {% else %}
+
+                                        <span class="text-muted small">—</span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="8" class="empty-state">
+                                    <i class="bi bi-receipt"></i>
+                                    <strong>No receipts submitted yet</strong>
+                                    <span>Driver-submitted receipts will appear here.</span>
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+        async function updateStatus(id, status) {
+
+            if (!confirm(`Are you sure you want to mark this as ${status}?`)) {
+                return;
+            }
+
+            try {
+
+                const res = await fetch(`/receipts/api/status/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: status
+                    })
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to update status. Please try again.');
+                }
+
+            } catch (error) {
+
+                console.error('Receipt status update error:', error);
+                alert('A network error occurred. Please try again.');
+
+            }
+        }
+
+
+        // RECEIPT DATE FILTER AND SUMMARY CALCULATIONS
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const periodFilter = document.getElementById('receiptPeriod');
+            const monthFilter = document.getElementById('receiptMonth');
+            const resetButton = document.getElementById('resetReceiptFilter');
+
+            const rows = Array.from(
+                document.querySelectorAll('[data-receipt-row]')
+            );
+
+            const currency = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+
+            function updateReceiptDashboard() {
+
+                const period = periodFilter.value;
+                const selectedMonth = monthFilter.value;
+
+                const now = new Date();
+
+                let startDate = null;
+                let endDate = null;
+
+                if (period === 'this_month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                }
+
+                else if (period === 'last_month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                }
+
+                else if (period === 'this_year') {
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    endDate = new Date(now.getFullYear() + 1, 0, 1);
+                }
+
+                else if (period === 'last_year') {
+                    startDate = new Date(now.getFullYear() - 1, 0, 1);
+                    endDate = new Date(now.getFullYear(), 0, 1);
+                }
+
+                else if (period === 'custom' && selectedMonth) {
+                    const [year, month] = selectedMonth.split('-').map(Number);
+
+                    startDate = new Date(year, month - 1, 1);
+                    endDate = new Date(year, month, 1);
+                }
+
+                let totalAmount = 0;
+                let visibleCount = 0;
+
+                const counts = {
+                    Pending: 0,
+                    Approved: 0,
+                    Paid: 0,
+                    Rejected: 0
+                };
+
+                rows.forEach(row => {
+
+                    const dateValue = row.dataset.date;
+                    const amount = Number(row.dataset.amount || 0);
+                    const status = row.dataset.status;
+
+                    // Parse YYYY-MM-DD as a local date.
+                    const receiptDate = new Date(dateValue + 'T00:00:00');
+
+                    let visible = true;
+
+                    if (period !== 'all') {
+
+                        if (period === 'custom' && !selectedMonth) {
+                            visible = false;
+                        }
+
+                        else if (
+                            !dateValue ||
+                            isNaN(receiptDate.getTime()) ||
+                            receiptDate < startDate ||
+                            receiptDate >= endDate
+                        ) {
+                            visible = false;
+                        }
+                    }
+
+                    row.style.display = visible ? '' : 'none';
+
+                    if (visible) {
+                        visibleCount++;
+                        totalAmount += amount;
+
+                        if (Object.prototype.hasOwnProperty.call(counts, status)) {
+                            counts[status]++;
+                        }
+                    }
+
+                });
+
+                document.getElementById('totalClaimsAmount').textContent =
+                    currency.format(totalAmount);
+
+                document.getElementById('pendingCount').textContent =
+                    counts.Pending;
+
+                document.getElementById('approvedCount').textContent =
+                    counts.Approved;
+
+                document.getElementById('paidCount').textContent =
+                    counts.Paid;
+
+                document.getElementById('rejectedCount').textContent =
+                    counts.Rejected;
+
+                document.getElementById('receiptCount').textContent =
+                    visibleCount;
+            }
+
+            periodFilter.addEventListener('change', function () {
+
+                monthFilter.style.display =
+                    this.value === 'custom' ? 'block' : 'none';
+
+                updateReceiptDashboard();
+            });
+
+            monthFilter.addEventListener('change', updateReceiptDashboard);
+
+            resetButton.addEventListener('click', function () {
+
+                periodFilter.value = 'all';
+                monthFilter.value = '';
+                monthFilter.style.display = 'none';
+
+                updateReceiptDashboard();
+            });
+
+            updateReceiptDashboard();
+
+        });
+
+    </script>
+
+</body>
+</html>

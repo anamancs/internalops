@@ -1,0 +1,1437 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101a30">
+
+    <title>Track Submissions | ACS Portal</title>
+
+    <link rel="icon" type="image/png"
+          href="{{ url_for('static', filename='favicon.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #101a30;
+            --navy-light: #192945;
+            --blue: #456df5;
+            --blue-light: #edf2ff;
+            --bg: #f4f6fb;
+            --text: #17233b;
+            --muted: #8490a5;
+            --border: #e9edf4;
+            --green: #159b70;
+            --orange: #d58a16;
+            --red: #dc5260;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+
+        .topbar {
+            background: var(--navy);
+            padding: 17px 0;
+            box-shadow: 0 5px 25px rgba(16, 26, 48, .12);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #5279ff, #294cce);
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+            box-shadow: 0 5px 15px rgba(69, 109, 245, .3);
+        }
+
+        .brand-name {
+            font-family: 'Manrope', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            color: #a8b7d0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .topbar {
+            background: var(--acs-navy, #172337);
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .topbar-inner {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .portal-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 9px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9px;
+            transition: all 0.2s ease;
+        }
+
+        .portal-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 750;
+            letter-spacing: -0.2px;
+        }
+
+        .brand-mark {
+            width: 37px;
+            height: 37px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 17px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2864dc, #0b8f91);
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                min-height: 62px;
+            }
+
+            .topbar-inner {
+                padding: 0 16px;
+            }
+
+            .portal-link {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .brand {
+                gap: 8px;
+                font-size: 12px;
+            }
+
+            .brand-mark {
+                width: 33px;
+                height: 33px;
+                font-size: 15px;
+            }
+
+            .brand small {
+                font-size: 9px;
+            }
+        }
+
+        .portal-btn {
+            border: 1px solid rgba(255,255,255,.2);
+            color: white;
+            border-radius: 10px;
+            padding: 9px 15px;
+            font-size: 13px;
+            transition: .2s;
+        }
+
+        .portal-btn:hover {
+            background: rgba(255,255,255,.1);
+            color: white;
+        }
+
+        /* PAGE */
+
+        .main-wrapper {
+            max-width: 960px;
+            margin: auto;
+            padding: 55px 20px 80px;
+        }
+
+        .page-heading {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--blue);
+            background: var(--blue-light);
+            padding: 7px 13px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.1px;
+            margin-bottom: 15px;
+        }
+
+        .page-heading h1 {
+            font-family: 'Manrope', sans-serif;
+            font-size: clamp(27px, 5vw, 37px);
+            font-weight: 800;
+            letter-spacing: -1.3px;
+            margin-bottom: 10px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 14px;
+            max-width: 450px;
+            margin: auto;
+            line-height: 1.7;
+        }
+
+        /* VERIFICATION CARD */
+
+        .verify-card {
+            max-width: 540px;
+            margin: auto;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 32px;
+            box-shadow: 0 15px 50px rgba(31, 47, 79, .055);
+        }
+
+        .verify-icon {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            background: var(--blue-light);
+            color: var(--blue);
+            font-size: 23px;
+            border-radius: 15px;
+            margin-bottom: 19px;
+        }
+
+        .verify-card h5 {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        .verify-description {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 26px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 9px;
+            color: #34425a;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #e3e8f0;
+            background: #fafbfd;
+            border-radius: 11px;
+            min-height: 51px;
+            padding: 12px 15px;
+            font-size: 13px;
+            color: var(--text);
+            box-shadow: none !important;
+            transition: .2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--blue);
+            background: white;
+        }
+
+        .input-group-text {
+            background: #fafbfd;
+            border: 1px solid #e3e8f0;
+            color: #8490a5;
+            border-radius: 11px 0 0 11px;
+            padding: 0 15px;
+        }
+
+        .input-group .form-control {
+            border-radius: 0 11px 11px 0;
+        }
+
+        .verify-btn {
+            width: 100%;
+            min-height: 52px;
+            border: none;
+            border-radius: 11px;
+            background: linear-gradient(110deg, #456df5, #3157d5);
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+            margin-top: 8px;
+            transition: .25s;
+            box-shadow: 0 7px 18px rgba(69, 109, 245, .2);
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(69, 109, 245, .3);
+            color: white;
+        }
+
+        .verify-btn:disabled {
+            opacity: .7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            color: #929daf;
+            font-size: 11px;
+            margin-top: 20px;
+        }
+
+
+
+        /* RESULTS */
+
+        #results {
+            margin-top: 45px;
+            animation: appear .4s ease;
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .results-heading h4 {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            font-size: 21px;
+            margin: 0;
+        }
+
+        .results-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin: 5px 0 0;
+        }
+
+        .refresh-btn {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 10px;
+            padding: 9px 13px;
+            color: #506078;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* SUMMARY */
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 13px;
+            margin-bottom: 23px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 17px;
+            min-width: 0;
+        }
+
+        .summary-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .summary-number {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            font-size: 25px;
+            line-height: 1.2;
+        }
+
+        .summary-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .total-icon { background: #edf2ff; color: #456df5; }
+        .pending-icon { background: #fff5e4; color: var(--orange); }
+        .approved-icon { background: #e7f8f1; color: var(--green); }
+        .rejected-icon { background: #fff0f1; color: var(--red); }
+
+        /* FILTER */
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .filter-search {
+            flex: 1;
+        }
+
+        .filter-search input {
+            background: white;
+        }
+
+        .filter-select {
+            width: 155px;
+        }
+
+        /* RECEIPT CARDS */
+
+        .receipt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .receipt-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            transition: .2s;
+        }
+
+        .receipt-card:hover {
+            border-color: #cbd7fa;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 22px rgba(31, 47, 79, .045);
+        }
+
+        .receipt-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .receipt-icon {
+            width: 45px;
+            height: 45px;
+            min-width: 45px;
+            background: #f0f3fa;
+            color: #61728e;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 19px;
+        }
+
+        .receipt-category {
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .receipt-date {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .receipt-amount {
+            font-family: 'Manrope', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 30px;
+            padding: 7px 11px;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background: #fff5e4;
+            color: #ad720c;
+        }
+
+        .status-approved {
+            background: #e7f8f1;
+            color: #12815e;
+        }
+
+        .status-rejected {
+            background: #fff0f1;
+            color: #c73f50;
+        }
+
+        .status-other {
+            background: #edf1f7;
+            color: #64748b;
+        }
+
+
+        /* SEARCHABLE DRIVER DROPDOWN */
+
+        .driver-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .driver-select-wrapper input.form-control {
+            padding-right: 42px;
+            background-color: #fafbfd;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23718096' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            cursor: pointer;
+        }
+
+        .driver-select-wrapper input.form-control:focus {
+            border-color: var(--blue);
+            background-color: white;
+        }
+
+        .driver-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            max-height: 220px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            background: white;
+            border: 1px solid #e3e8f0;
+            border-radius: 11px;
+            box-shadow: 0 10px 25px rgba(31, 47, 79, .14);
+            z-index: 1050;
+            padding: 5px;
+        }
+
+        .driver-dropdown.show {
+            display: block;
+        }
+
+        .driver-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 11px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            text-align: left;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .driver-option i {
+            color: var(--muted);
+        }
+
+        .driver-option:hover,
+        .driver-option.active {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .driver-empty {
+            display: none;
+            padding: 14px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .driver-empty.show {
+            display: block;
+        }
+
+        /* EMPTY / ERROR */
+
+        .empty-state {
+            background: white;
+            border: 1px dashed #dce3ee;
+            border-radius: 16px;
+            text-align: center;
+            padding: 45px 20px;
+        }
+
+        .empty-state i {
+            font-size: 35px;
+            color: #a6b3c8;
+        }
+
+        .empty-state h6 {
+            font-weight: 800;
+            margin: 15px 0 7px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .alert-custom {
+            border-radius: 11px;
+            font-size: 13px;
+            padding: 12px 15px;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            text-align: center;
+            padding: 30px 15px;
+            color: #98a3b5;
+            font-size: 11px;
+        }
+
+        .footer strong {
+            color: #65738a;
+        }
+
+        /* MOBILE */
+
+        @media(max-width: 600px) {
+            .main-wrapper {
+                padding: 35px 15px 55px;
+            }
+
+            .verify-card {
+                padding: 24px 20px;
+                border-radius: 18px;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 14px;
+            }
+
+            .summary-number {
+                font-size: 23px;
+            }
+
+            .receipt-card {
+                padding: 15px 12px;
+                align-items: flex-start;
+            }
+
+            .receipt-left {
+                gap: 10px;
+            }
+
+            .receipt-icon {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                font-size: 16px;
+            }
+
+            .receipt-category {
+                font-size: 12px;
+            }
+
+            .receipt-amount {
+                font-size: 14px;
+            }
+
+            .status-badge {
+                padding: 6px 8px;
+                font-size: 9px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .results-heading h4 {
+                font-size: 18px;
+            }
+
+            .brand-name {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<nav class="topbar">
+    <div class="topbar-inner">
+        <a href="/" class="portal-link">
+            <i class="bi bi-arrow-left"></i>
+            <span>Portal</span>
+        </a>
+
+        <div class="brand">
+            <span class="brand-mark">
+                <i class="bi bi-receipt-cutoff"></i>
+            </span>
+            <span>
+                ACS Driver Portal
+                <small>Expense &amp; receipt submission</small>
+            </span>
+        </div>
+    </div>
+</nav>
+
+
+<!-- MAIN -->
+
+<main class="main-wrapper">
+
+    <div class="page-heading">
+
+        <div class="eyebrow">
+            <i class="bi bi-receipt-cutoff"></i>
+            Driver Expense Center
+        </div>
+
+        <h1>Track Your Submissions</h1>
+
+        <p>
+            Stay updated on your expense receipts.
+            Verify your account to view your submission
+            history and approval status.
+        </p>
+
+    </div>
+
+
+    <!-- VERIFICATION -->
+
+    <section class="verify-card">
+
+        <div class="verify-icon">
+            <i class="bi bi-shield-lock"></i>
+        </div>
+
+        <h5>Verify Your Identity</h5>
+
+        <p class="verify-description">
+            Enter your registered driver details below
+            to securely access your expense submissions.
+        </p>
+
+        <form id="trackingForm">
+
+            <div class="mb-4">
+
+                <label for="trackName" class="form-label">
+                    DRIVER NAME
+                </label>
+
+                <!--
+                <select id="trackName" class="form-select" required>
+
+                    <option value="" selected disabled>
+                        Select your name
+                    </option>
+
+                    {% for email, name in drivers.items() %}
+                        <option value="{{ email }}">{{ name }}</option>
+                    {% endfor %}
+
+                </select>-->
+
+                <div class="driver-select-wrapper">
+
+                    <input
+                        type="text"
+                        id="driverSearch"
+                        class="form-control"
+                        placeholder="Search or select your name..."
+                        autocomplete="off"
+                        aria-expanded="false"
+                        aria-controls="driverOptions"
+                        required
+                    >
+
+                    <input
+                        type="hidden"
+                        id="trackName"
+                        required
+                    >
+
+                    <div class="driver-dropdown" id="driverOptions">
+
+                        {% for email, name in drivers.items() %}
+                            <button
+                                type="button"
+                                class="driver-option"
+                                data-email="{{ email }}"
+                                data-name="{{ name }}"
+                            >
+                                <i class="bi bi-person-circle"></i>
+                                <span>{{ name }}</span>
+                            </button>
+                        {% endfor %}
+
+                        <div class="driver-empty" id="driverEmpty">
+                            No matching drivers found.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="mb-4">
+
+                <label for="trackEmail" class="form-label">
+                    REGISTERED EMAIL ADDRESS
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+
+                    <input
+                        type="email"
+                        id="trackEmail"
+                        class="form-control"
+                        placeholder="Enter your registered email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div id="formError" class="alert alert-danger alert-custom d-none mb-3"></div>
+
+            <button type="submit" id="trackButton" class="btn verify-btn">
+
+                <span id="buttonText">
+                    View My Submissions
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </span>
+
+                <span id="buttonLoading" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Verifying Account...
+                </span>
+
+            </button>
+
+        </form>
+
+        <div class="security-note">
+            <i class="bi bi-shield-check"></i>
+            Your information is protected and confidential.
+        </div>
+
+    </section>
+
+
+    <!-- RESULTS -->
+
+    <section id="results" class="d-none">
+
+        <div class="results-heading">
+
+            <div>
+                <h4>Your Expense Overview</h4>
+                <p id="welcomeText">Your recent receipt submissions</p>
+            </div>
+
+            <button class="refresh-btn" id="refreshButton" type="button">
+                <i class="bi bi-arrow-clockwise me-1"></i>
+                Refresh
+            </button>
+
+        </div>
+
+
+        <!-- SUMMARY CARDS -->
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+                <div class="summary-icon total-icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="summary-number" id="totalCount">0</div>
+                <div class="summary-label">TOTAL SUBMITTED</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon pending-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div class="summary-number" id="pendingCount">0</div>
+                <div class="summary-label">PENDING</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon approved-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="summary-number" id="approvedCount">0</div>
+                <div class="summary-label">APPROVED</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon rejected-icon">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="summary-number" id="rejectedCount">0</div>
+                <div class="summary-label">REJECTED</div>
+            </div>
+
+        </div>
+
+
+        <!-- FILTERS -->
+
+        <div class="filter-bar">
+
+            <div class="filter-search">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                        type="search"
+                        id="searchReceipts"
+                        class="form-control"
+                        placeholder="Search expense categories..."
+                    >
+                </div>
+            </div>
+
+            <select id="statusFilter" class="form-select filter-select">
+                <option value="all">All statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+
+        </div>
+
+
+        <!-- RECEIPTS -->
+
+        <div id="resultsList" class="receipt-list"></div>
+
+    </section>
+
+</main>
+
+
+<footer class="footer">
+    <strong>ANAMAN CONCIERGE SERVICES</strong>
+    <div class="mt-1">Driver Expense Management Portal</div>
+    <div class="mt-2">© 2026 ACS. All rights reserved.</div>
+</footer>
+
+
+<script>
+
+    const form = document.getElementById('trackingForm');
+    const button = document.getElementById('trackButton');
+
+    let currentEmail = '';
+    let allReceipts = [];
+
+    /* SEARCHABLE DRIVER SELECTION */
+
+    const driverSearch = document.getElementById('driverSearch');
+    const driverDropdown = document.getElementById('driverOptions');
+    const driverOptions = document.querySelectorAll('.driver-option');
+    const driverEmpty = document.getElementById('driverEmpty');
+    const trackName = document.getElementById('trackName');
+    const trackEmail = document.getElementById('trackEmail');
+
+    function openDriverDropdown() {
+        driverDropdown.classList.add('show');
+        driverSearch.setAttribute('aria-expanded', 'true');
+        filterDrivers();
+    }
+
+    function closeDriverDropdown() {
+        driverDropdown.classList.remove('show');
+        driverSearch.setAttribute('aria-expanded', 'false');
+    }
+
+    function filterDrivers() {
+        const search = driverSearch.value.trim().toLowerCase();
+        let matches = 0;
+
+        driverOptions.forEach(option => {
+            const name = option.dataset.name.toLowerCase();
+            const email = option.dataset.email.toLowerCase();
+
+            const match = name.includes(search) || email.includes(search);
+
+            option.style.display = match ? 'flex' : 'none';
+
+            if (match) matches++;
+        });
+
+        driverEmpty.classList.toggle('show', matches === 0);
+    }
+
+    driverSearch.addEventListener('focus', openDriverDropdown);
+
+    driverSearch.addEventListener('input', function() {
+        trackName.value = '';
+        trackEmail.value = '';
+
+        document.getElementById('results').classList.add('d-none');
+        document.getElementById('formError').classList.add('d-none');
+
+        openDriverDropdown();
+    });
+
+    driverOptions.forEach(option => {
+        option.addEventListener('click', function() {
+
+            driverSearch.value = this.dataset.name;
+            trackName.value = this.dataset.email;
+
+            closeDriverDropdown();
+
+            document.getElementById('results').classList.add('d-none');
+            document.getElementById('formError').classList.add('d-none');
+
+        });
+    });
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.driver-select-wrapper')) {
+            closeDriverDropdown();
+        }
+    });
+
+    // Show loading state
+
+    function setLoading(loading) {
+
+        button.disabled = loading;
+
+        document.getElementById('buttonText')
+            .classList.toggle('d-none', loading);
+
+        document.getElementById('buttonLoading')
+            .classList.toggle('d-none', !loading);
+
+    }
+
+
+    // Display error
+
+    function showError(message) {
+
+        const error = document.getElementById('formError');
+
+        error.textContent = message;
+        error.classList.remove('d-none');
+
+    }
+
+
+    // Format receipt status
+
+    function getStatus(status) {
+
+        const normalized = String(status || '').toLowerCase();
+
+        if (normalized === 'pending') {
+            return {
+                label: 'Pending',
+                className: 'status-pending',
+                icon: 'bi-clock-history'
+            };
+        }
+
+        if (normalized === 'approved') {
+            return {
+                label: 'Approved',
+                className: 'status-approved',
+                icon: 'bi-check-circle-fill'
+            };
+        }
+
+        if (normalized === 'rejected') {
+            return {
+                label: 'Rejected',
+                className: 'status-rejected',
+                icon: 'bi-x-circle-fill'
+            };
+        }
+
+        return {
+            label: status || 'Unknown',
+            className: 'status-other',
+            icon: 'bi-info-circle'
+        };
+
+    }
+
+
+    // Build a receipt card safely
+
+    function createReceiptCard(receipt) {
+
+        const status = getStatus(receipt.status);
+
+        const card = document.createElement('div');
+        card.className = 'receipt-card';
+
+        const left = document.createElement('div');
+        left.className = 'receipt-left';
+
+        const icon = document.createElement('div');
+        icon.className = 'receipt-icon';
+
+        const iconElement = document.createElement('i');
+        iconElement.className = 'bi bi-receipt-cutoff';
+
+        icon.appendChild(iconElement);
+
+        const details = document.createElement('div');
+
+        const category = document.createElement('div');
+        category.className = 'receipt-category';
+        category.textContent = receipt.category || 'Expense';
+
+        const date = document.createElement('div');
+        date.className = 'receipt-date';
+        date.textContent = receipt.date || 'Date unavailable';
+
+        const amount = document.createElement('div');
+        amount.className = 'receipt-amount';
+        amount.textContent = receipt.amount ?? 'Amount unavailable';
+
+        details.append(category, date, amount);
+        left.append(icon, details);
+
+        const badge = document.createElement('span');
+        badge.className = `status-badge ${status.className}`;
+
+        const badgeIcon = document.createElement('i');
+        badgeIcon.className = `bi ${status.icon}`;
+
+        badge.append(badgeIcon, document.createTextNode(status.label));
+
+        card.append(left, badge);
+
+        return card;
+
+    }
+
+
+    // Render receipt list
+
+    function renderReceipts() {
+
+        const list = document.getElementById('resultsList');
+
+        const search = document.getElementById('searchReceipts')
+            .value.trim().toLowerCase();
+
+        const filter = document.getElementById('statusFilter').value;
+
+        list.replaceChildren();
+
+        const filtered = allReceipts.filter(receipt => {
+
+            const matchesSearch = String(receipt.category || '')
+                .toLowerCase().includes(search);
+
+            const matchesStatus = filter === 'all' ||
+                String(receipt.status || '').toLowerCase() === filter.toLowerCase();
+
+            return matchesSearch && matchesStatus;
+
+        });
+
+
+        if (filtered.length === 0) {
+
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-inbox';
+
+            const heading = document.createElement('h6');
+            heading.textContent = allReceipts.length
+                ? 'No matching submissions'
+                : 'No receipts submitted yet';
+
+            const description = document.createElement('p');
+            description.textContent = allReceipts.length
+                ? 'Try adjusting your search or status filter.'
+                : 'Your submitted expense receipts will appear here.';
+
+            empty.append(icon, heading, description);
+            list.appendChild(empty);
+
+            return;
+
+        }
+
+
+        filtered.forEach(receipt => {
+            list.appendChild(createReceiptCard(receipt));
+        });
+
+    }
+
+
+    // Update summary cards
+
+    function updateSummary(receipts) {
+
+        const pending = receipts.filter(r =>
+            String(r.status).toLowerCase() === 'pending'
+        ).length;
+
+        const approved = receipts.filter(r =>
+            String(r.status).toLowerCase() === 'approved'
+        ).length;
+
+        const rejected = receipts.filter(r =>
+            String(r.status).toLowerCase() === 'rejected'
+        ).length;
+
+        document.getElementById('totalCount').textContent = receipts.length;
+        document.getElementById('pendingCount').textContent = pending;
+        document.getElementById('approvedCount').textContent = approved;
+        document.getElementById('rejectedCount').textContent = rejected;
+
+    }
+
+
+    // Retrieve submissions
+
+    async function trackSubmissions(email) {
+
+        const error = document.getElementById('formError');
+        error.classList.add('d-none');
+
+        setLoading(true);
+
+        try {
+
+            const response = await fetch('/receipts/api/track', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    email: email
+                })
+
+            });
+
+            if (!response.ok) {
+                throw new Error('Unable to retrieve your submissions. Please try again.');
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data.receipts)) {
+                throw new Error('The server returned an invalid response.');
+            }
+
+            currentEmail = email;
+            allReceipts = data.receipts;
+
+            updateSummary(allReceipts);
+            renderReceipts();
+
+            document.getElementById('welcomeText').textContent =
+                'Your recent receipt submissions';
+
+            document.getElementById('results')
+                .classList.remove('d-none');
+
+        }
+
+        catch (err) {
+
+            showError(err.message || 'Something went wrong. Please try again.');
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    }
+
+
+    // Verify driver details
+
+    form.addEventListener('submit', function(event) {
+
+        event.preventDefault();
+
+        const selectedEmail = document.getElementById('trackName')
+            .value.trim();
+
+        const typedEmail = document.getElementById('trackEmail')
+            .value.trim();
+
+
+        document.getElementById('formError').classList.add('d-none');
+
+        if (!selectedEmail || !typedEmail) {
+            showError('Please select your name and enter your email.');
+            return;
+        }
+
+        if (selectedEmail.toLowerCase() !== typedEmail.toLowerCase()) {
+            showError('Verification failed. Kindly use your same registered work email for dispatch.');
+            return;
+        }
+
+        trackSubmissions(selectedEmail);
+
+    });
+
+
+    // Search and status filters
+
+    document.getElementById('searchReceipts')
+        .addEventListener('input', renderReceipts);
+
+    document.getElementById('statusFilter')
+        .addEventListener('change', renderReceipts);
+
+
+    // Refresh submissions
+
+    document.getElementById('refreshButton')
+        .addEventListener('click', function() {
+
+            if (currentEmail) {
+                trackSubmissions(currentEmail);
+            }
+
+        });
+
+</script>
+
+</body>
+</html>
