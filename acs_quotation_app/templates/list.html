@@ -301,6 +301,12 @@
             border-color: #286da8;
         }
 
+        .quotes-table th:nth-child(5),
+        .quotes-table td:nth-child(5) {
+            white-space: nowrap;
+            min-width: 75px;
+        }
+
         .empty-state {
             padding: 75px 20px;
             text-align: center;
@@ -357,55 +363,159 @@
             padding-top: 25px;
         }
 
+
+        /* =========================================
+        MOBILE RESPONSIVENESS
+        ========================================= */
+
         @media (max-width: 768px) {
+
+            .topbar {
+                min-height: 60px;
+            }
+
+            .topbar-inner {
+                min-height: 60px;
+                padding: 8px 14px;
+                gap: 32px;
+                flex-wrap: nowrap;
+            }
+
+            .topbar .portal-link {
+                padding: 7px 9px;
+                font-size: 11px;
+                gap: 5px;
+                flex-shrink: 0;
+            }
+
+            .brand {
+                order: 0;
+                width: auto;
+                flex: 1;
+                min-width: 0;
+                gap: 7px;
+                font-size: 11px;
+                overflow: hidden;
+            }
+
+            .brand-mark {
+                width: 31px;
+                height: 31px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            .brand > span:last-child {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .brand small {
+                font-size: 8px;
+                white-space: nowrap;
+            }
+
+            .topbar .new-quote-btn {
+                padding: 8px 10px;
+                font-size: 11px;
+                gap: 5px;
+                flex-shrink: 0;
+            }
+
             .quotes-container {
-                padding: 25px 13px 40px;
+                padding: 24px 13px 35px;
             }
 
             .quotes-heading {
                 align-items: flex-start;
                 flex-direction: column;
-                gap: 13px;
+                gap: 12px;
+                margin-bottom: 20px;
             }
 
             .quotes-heading h1 {
-                font-size: 1.55rem;
+                font-size: 1.5rem;
+            }
+
+            .quotes-heading p {
+                font-size: 0.82rem;
+                line-height: 1.5;
+            }
+
+            .quotes-count {
+                font-size: 0.75rem;
             }
 
             .panel-header {
-                padding: 17px;
+                padding: 16px;
             }
 
-            .topbar-inner {
-                padding: 10px 14px;
-                min-height: 62px;
-                flex-wrap: wrap;
+            .panel-title {
+                font-size: 0.9rem;
             }
 
-            .brand {
-                order: -1;
-                width: 100%;
-                font-size: 12px;
+            .panel-subtitle {
+                font-size: 0.73rem;
             }
 
-            .brand-mark {
-                width: 33px;
-                height: 33px;
-                font-size: 15px;
+            .quotes-table {
+                min-width: 850px;
+            }
+
+            .quotes-table thead th,
+            .quotes-table tbody td {
+                padding: 13px 14px;
+                font-size: 0.77rem;
+            }
+
+            .quotes-footer {
+                font-size: 0.7rem;
+                padding: 22px 10px 0;
             }
         }
 
         @media (max-width: 420px) {
+
+            .topbar-inner {
+                padding-left: 9px;
+                padding-right: 9px;
+                gap: 32px;
+            }
+
             .topbar .portal-link {
-                padding: 7px 9px;
+                padding: 7px;
+                font-size: 10px;
+            }
+
+            .brand {
+                gap: 5px;
+            }
+
+            .brand-mark {
+                width: 27px;
+                height: 27px;
                 font-size: 12px;
             }
 
+            .brand {
+                font-size: 10px;
+            }
+
+            .brand small {
+                font-size: 7px;
+            }
+
             .topbar .new-quote-btn {
-                padding: 7px 10px;
-                font-size: 0.77rem;
+                padding: 7px 8px;
+                font-size: 10px;
+            }
+
+            .quotes-heading h1 {
+                font-size: 1.4rem;
             }
         }
+
     </style>
 </head>
 
@@ -425,7 +535,7 @@
                 </span>
                 <span>
                     ACS  Quotations
-                    <small>View & track live quotations ledger</small>
+                    <small>View & Track quotations ledger</small>
                 </span>
             </div>
 
