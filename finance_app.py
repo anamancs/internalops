@@ -69,6 +69,16 @@ def _date_matches_period(value, period, today=None):
     if period == "this_year":
         return tx_date.year == today.year
 
+    # Custom month selection is encoded as custom:YYYY-MM.
+    if isinstance(period, str) and period.startswith("custom:"):
+        try:
+            selected_year, selected_month = map(
+                int, period.split(":", 1)[1].split("-", 1)
+            )
+            return tx_date.year == selected_year and tx_date.month == selected_month
+        except (ValueError, IndexError):
+            return False
+
     return True
 
 
@@ -160,6 +170,18 @@ def summary():
     elif period == 'this_year':
         fuel_start = today.replace(month=1, day=1)
         fuel_end = today
+    elif isinstance(period, str) and period.startswith('custom:'):
+        try:
+            selected_year, selected_month = map(
+                int, period.split(':', 1)[1].split('-', 1)
+            )
+            fuel_start = datetime(selected_year, selected_month, 1).date()
+            fuel_end = datetime(
+                selected_year, selected_month,
+                calendar.monthrange(selected_year, selected_month)[1]
+            ).date()
+        except (ValueError, IndexError):
+            return jsonify({'error': 'Invalid month selection.'}), 400
     else:
         fuel_start = None
         fuel_end = None

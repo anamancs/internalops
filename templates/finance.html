@@ -167,7 +167,7 @@
         body { font-family: "DM Sans", sans-serif; background: #f4f6fb; color: #1d2b3f; }
         h1, h2, h3, h4, h5, h6, .metric-value { font-family: "Manrope", sans-serif; }
         .topbar { margin-bottom: 0; }
-        .topbar-inner { max-width: 1600px; }
+        .topbar-inner { max-width: 1350px; }
         .page-wrap { max-width: 1400px; margin: 0 auto; padding: 30px 32px 48px; }
         .page-heading { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:24px; }
         .page-kicker { color:#718096; text-transform:uppercase; letter-spacing:.09em; font-size:11px; font-weight:700; margin-bottom:5px; }
@@ -269,12 +269,30 @@
                 <h1 class="page-title">Financial Dashboard</h1>
                 <div class="page-subtitle">Monitor revenue, operating costs and the company bottom line.</div>
             </div>
-            <select id="periodFilter" class="form-select w-auto fw-bold" onchange="loadDashboard()">
+            <!--<select id="periodFilter" class="form-select w-auto fw-bold" onchange="loadDashboard()">
                 <option value="this_month">This Month</option>
                 <option value="last_month">Last Month</option>
                 <option value="this_year">This Year</option>
                 <option value="all">All Time</option>
-            </select>
+            </select-->
+            <div class="d-flex align-items-center gap-2">
+                <select id="periodFilter"
+                        class="form-select w-auto fw-bold"
+                        onchange="handlePeriodFilterChange()">
+                    <option value="this_month">This Month</option>
+                    <option value="last_month">Last Month</option>
+                    <option value="this_year">This Year</option>
+                    <option value="all">All Time</option>
+                    <option value="custom_month">Specific Month</option>
+                </select>
+
+                <input type="month"
+                    id="monthYearFilter"
+                    class="form-control w-auto fw-bold"
+                    style="display:none;"
+                    onchange="loadDashboard()"
+                    aria-label="Select month and year">
+            </div>
         </div>
 
         <!-- Financial Metric Cards -->
@@ -521,6 +539,29 @@
         }
 
         let chartInstance = null;
+        function getSelectedPeriod() {
+            const filter = document.getElementById('periodFilter').value;
+
+            if (filter === 'custom_month') {
+                const selectedMonth = document.getElementById('monthYearFilter').value;
+
+                if (!selectedMonth) return null;
+
+                return `custom:${selectedMonth}`;
+            }
+
+            return filter;
+        }
+
+        function handlePeriodFilterChange() {
+            const filter = document.getElementById('periodFilter').value;
+            const monthPicker = document.getElementById('monthYearFilter');
+
+            monthPicker.style.display =
+                filter === 'custom_month' ? 'block' : 'none';
+
+            loadDashboard();
+        }
 
         function formatCurrency(value) {
             return Number(value || 0).toLocaleString('en-US', {
@@ -529,9 +570,14 @@
             });
         }
 
-        async function loadDashboard() {
-            const period = document.getElementById('periodFilter').value;
+        //async function loadDashboard() {
+            //const period = document.getElementById('periodFilter').value;
 
+        async function loadDashboard() {
+            const period = getSelectedPeriod();
+
+            if (!period) return;
+        
             try {
                 const res = await fetch(
                     `/finance/api/summary?period=${encodeURIComponent(period)}`
@@ -747,10 +793,20 @@
             document.getElementById('ledgerModal')
         );
 
+        //async function openLedger(type = '') {
+            //activeLedgerType = type;
+
+            //const period = document.getElementById('periodFilter').value;
+
         async function openLedger(type = '') {
             activeLedgerType = type;
 
-            const period = document.getElementById('periodFilter').value;
+            const period = getSelectedPeriod();
+
+            if (!period) {
+                alert('Please select a month and year first.');
+                return;
+            }
             const title = document.getElementById('ledgerTitle');
             const tbody = document.getElementById('ledgerBody');
 

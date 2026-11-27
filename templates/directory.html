@@ -653,6 +653,57 @@
 
             .page-heading h1 { font-size: 27px; }
         }
+
+        /* MODAL SCROLL FIX */
+
+        #departmentModal .modal-dialog {
+            height: calc(100% - 2rem);
+            max-height: calc(100vh - 2rem);
+            margin: 1rem auto;
+        }
+
+        #departmentModal .modal-content {
+            height: 100%;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #departmentModal form {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #departmentModal .modal-header {
+            flex-shrink: 0;
+        }
+
+        #departmentModal .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #departmentModal .modal-footer {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 767px) {
+            #departmentModal .modal-dialog {
+                height: calc(100% - 1rem);
+                max-height: calc(100vh - 1rem);
+                margin: .5rem;
+            }
+        }
+
+
     </style>
 </head>
 
@@ -818,7 +869,7 @@
 
 {% if is_admin %}
 <div class="modal fade" id="departmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
 
             <form id="departmentForm">

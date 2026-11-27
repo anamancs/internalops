@@ -98,7 +98,7 @@ def verify_driver():
 
     return jsonify({
         'valid': False,
-        'message': 'The email address does not match the selected driver name.'
+        'message': 'Invalid credentials. Kindly use your email registered for dispatch communication.'
     }), 200
 
 # --- Public Routes ---

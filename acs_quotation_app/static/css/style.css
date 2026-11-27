@@ -112,8 +112,19 @@ a {
     z-index: 100;
 }
 
+/*.acs-navbar .container {
+    display: flex;
+    max-width: 1120px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}*/
 .acs-navbar .container {
     display: flex;
+    width: 100%;
+    max-width: 1120px;
+    padding-left: 14px;
+    padding-right: 0px;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
@@ -123,7 +134,7 @@ a {
 .navbar-right {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 20px;
 }
 
 .portal-link {
@@ -242,6 +253,140 @@ a {
     background: #fff;
     padding: 4px 8px;
     border-radius: 5px;
+}
+
+/* NEW ELEMENTS
+   ========================================================= */
+/* =========================================================
+   NAVIGATION — SHARED ACS PORTAL STYLE
+========================================================= */
+
+.topbar {
+    background: #101c32;                 /* matches quotation navy */
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 5px 25px rgba(16,26,48,0.12);
+    position: relative;
+    z-index: 100;
+}
+
+.topbar-inner {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.portal-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 9px;
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.portal-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: -0.2px;
+}
+
+.brand-mark {
+    width: 37px;
+    height: 37px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 17px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #2864dc, #0b8f91);
+}
+
+.brand small {
+    display: block;
+    margin-top: 2px;
+    color: rgba(255,255,255,0.58);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Optional logo support (if you still want the image) */
+.topbar-actions .navbar-logo img {
+    display: block;
+    max-height: 34px;
+    max-width: 130px;
+    background: #fff;
+    padding: 3px 7px;
+    border-radius: 5px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .topbar {
+        min-height: 62px;
+    }
+
+    .topbar-inner {
+        padding: 0 16px;
+        min-height: 62px;
+    }
+
+    .portal-link {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .brand {
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    .brand-mark {
+        width: 33px;
+        height: 33px;
+        font-size: 15px;
+    }
+
+    .brand small {
+        font-size: 9px;
+    }
+
+    /* Hide the text of the secondary action on very small screens if needed */
+    .topbar-actions .portal-link span {
+        display: none;
+    }
 }
 
 

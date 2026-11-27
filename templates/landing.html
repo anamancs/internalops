@@ -428,72 +428,322 @@
            RESPONSIVE
         ========================= */
 
+
+        /* =========================
+        RESPONSIVE OPTIMIZATION
+        Original ACS UI preserved
+        ========================= */
+
+        /* Tablets and smaller laptops */
         @media (max-width: 1100px) {
             .app-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
+        /* Mobile devices */
         @media (max-width: 767px) {
+
+            .navbar {
+                min-height: 62px;
+                padding: 10px 0;
+            }
+
             .navbar-container,
             .page-container {
                 width: calc(100% - 30px);
             }
 
+            .navbar-brand {
+                gap: 8px;
+                font-size: 12px;
+                letter-spacing: 0.2px;
+            }
+
+            .brand-mark {
+                width: 34px;
+                height: 34px;
+                flex-shrink: 0;
+            }
+
+            .navbar-container > .d-flex {
+                gap: 8px !important;
+            }
+
+            .btn-admin-login,
+            .btn-logout {
+                padding: 8px 10px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .navbar-status {
+                display: none !important;
+            }
+
+            /* Hero */
+
             .hero {
-                padding: 42px 18px;
+                padding: 39px 20px 36px;
+            }
+
+            .hero-eyebrow {
+                font-size: 9px;
+                padding: 6px 10px;
+                letter-spacing: 1px;
+                margin-bottom: 14px;
             }
 
             .hero h1 {
-                font-size: 29px;
+                font-size: clamp(25px, 6vw, 29px);
+                line-height: 1.25;
+                letter-spacing: -0.7px;
+                margin-bottom: 12px;
             }
 
-            .app-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 12px;
+            .hero-description {
+                font-size: 13px;
+                line-height: 1.65;
+                margin-bottom: 15px;
             }
 
+            .hero-tagline {
+                font-size: 11px;
+                line-height: 1.5;
+            }
+
+            .hero-divider {
+                margin-top: 21px;
+            }
+
+            /* Main content */
+
+            .page-container {
+                margin-top: 27px;
+                margin-bottom: 40px;
+            }
+
+            .section-heading {
+                align-items: flex-start;
+                margin-bottom: 15px;
+                gap: 8px;
+            }
+
+            .section-title {
+                font-size: 14px;
+                line-height: 1.45;
+            }
+
+            .section-subtitle {
+                font-size: 10px;
+                line-height: 1.5;
+            }
+
+            .section-label {
+                font-size: 8px;
+                padding: 6px 8px;
+                letter-spacing: 0.6px;
+                white-space: normal;
+                text-align: center;
+                flex-shrink: 0;
+                max-width: 115px;
+            }
+
+            /* Application grids */
+
+            .app-grid,
             .admin-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 12px;
             }
 
             .app-card {
-                min-height: 195px;
-                padding: 17px 14px;
+                min-width: 0;
+                min-height: 190px;
+                padding: 16px 13px;
+                border-radius: 11px;
             }
+
+            .app-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                margin-bottom: 14px;
+                border-radius: 10px;
+            }
+
+            .app-title {
+                font-size: 12px;
+                line-height: 1.4;
+                margin-bottom: 6px;
+            }
+
+            .app-description {
+                font-size: 10px;
+                line-height: 1.55;
+                overflow-wrap: break-word;
+            }
+
+            .app-arrow {
+                right: 12px;
+                bottom: 12px;
+                font-size: 12px;
+            }
+
+            /* Admin cards */
+
+            .admin-card {
+                min-height: 190px;
+            }
+
+            .access-badge {
+                top: 10px;
+                right: 9px;
+                font-size: 8px;
+                padding: 4px 6px;
+                gap: 3px;
+            }
+
+            .admin-card .app-icon {
+                margin-top: 9px;
+            }
+
+            /* Dividers */
 
             .section-divider {
-                margin: 29px 0;
+                margin: 27px 0;
             }
 
-            .page-container {
-                margin-top: 29px;
+            /* Footer */
+
+            .footer {
+                padding: 21px 15px;
+            }
+
+            .footer-company {
+                font-size: 11px;
+            }
+
+            .footer-detail {
+                font-size: 9px;
+                line-height: 1.7;
             }
         }
 
+        /* Narrow phones */
         @media (max-width: 420px) {
+
+            .navbar-container,
+            .page-container {
+                width: calc(100% - 24px);
+            }
+
+            .navbar-brand {
+                font-size: 10px;
+                gap: 6px;
+            }
+
+            .brand-mark {
+                width: 31px;
+                height: 31px;
+                font-size: 17px;
+            }
+
+            .btn-admin-login,
+            .btn-logout {
+                padding: 7px 8px;
+                font-size: 10px;
+            }
+
+            .hero {
+                padding: 34px 16px;
+            }
+
+            .hero h1 {
+                font-size: 26px;
+            }
+
+            .section-heading {
+                flex-wrap: wrap;
+            }
+
+            .section-label {
+                max-width: none;
+            }
+
+            .app-grid,
+            .admin-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .app-card {
+                min-height: 190px;
+                padding: 15px 11px;
+            }
+
+            .app-title {
+                font-size: 11px;
+            }
+
+            .app-description {
+                font-size: 9.5px;
+            }
+        }
+
+        /* Very narrow phones */
+        @media (max-width: 350px) {
+
+            .navbar-brand {
+                font-size: 9px;
+            }
+
+            .btn-admin-login,
+            .btn-logout {
+                font-size: 9px;
+                padding: 7px 6px;
+            }
+
             .app-grid,
             .admin-grid {
                 grid-template-columns: 1fr;
             }
 
             .app-card {
-                min-height: 150px;
+                min-height: 145px;
+                padding: 16px;
             }
 
             .app-icon {
-                margin-bottom: 13px;
-            }
-
-            .section-heading {
-                align-items: flex-start;
-            }
-
-            .navbar-brand {
-                font-size: 12px;
+                margin-bottom: 11px;
             }
         }
+
+        /* Touchscreen behavior */
+        @media (hover: none) {
+
+            .app-card:hover {
+                transform: none;
+                box-shadow: none;
+                border-color: var(--acs-line);
+            }
+
+            .app-card:active {
+                background: #f8faff;
+                border-color: #cbd9f1;
+            }
+
+            .app-card:hover .app-icon {
+                background: var(--acs-blue-light);
+                color: var(--acs-blue);
+            }
+
+            .admin-card:hover .admin-icon {
+                background: #e8f5f4;
+                color: var(--acs-teal);
+            }
+        }
+
     </style>
 </head>
 

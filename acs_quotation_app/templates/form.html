@@ -34,46 +34,33 @@
     <!-- ==========================================
          NAVIGATION
     =========================================== -->
-    <nav class="navbar navbar-expand-lg acs-navbar">
-        <div class="container">
+    <!-- ==========================================
+        NAVIGATION — SHARED ACS PORTAL STYLE
+    =========================================== -->
+    <nav class="topbar">
+        <div class="topbar-inner">
 
-            <div class="navbar-left">
+            <a href="/" class="portal-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Portal</span>
+            </a>
 
-                <a href="/" class="portal-link" title="Return to Portal">
-                    <i class="bi bi-arrow-left"></i>
-                    <span>Portal</span>
-                </a>
-
-                <div class="navbar-divider"></div>
-
-                <div class="navbar-title">
-                    <span class="navbar-icon">
-                        <i class="bi bi-file-earmark-text"></i>
-                    </span>
-
-                    <div>
-                        <span class="navbar-heading">Quotation Generator</span>
-                        <span class="navbar-subheading">ACS Operations</span>
-                    </div>
-                </div>
-
+            <div class="brand">
+                <span class="brand-mark">
+                    <i class="bi bi-file-earmark-text"></i>
+                </span>
+                <span>
+                    ACS Quotation Generator
+                    <small>Operations &amp; Pricing</small>
+                </span>
             </div>
 
-            <div class="navbar-right">
-
+            <div class="topbar-actions">
                 <a href="{{ url_for('quotation.list_quotations') }}"
-                   class="saved-quotes-link">
+                class="portal-link">
                     <i class="bi bi-folder2-open"></i>
                     <span>Saved Quotations</span>
                 </a>
-
-                <div class="navbar-logo">
-                    <img
-                        src="https://anamancs.com/wp-content/uploads/2022/11/Anaman-Concierge-Services-Logo.png"
-                        alt="Anaman Concierge Services"
-                        onerror="this.style.display='none'">
-                </div>
-
             </div>
 
         </div>

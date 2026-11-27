@@ -64,6 +64,7 @@ SYNONYMS = {
     "services": {"service", "transport", "transportation"},
     "town": {"city", "location", "area", "destination"},
     "city": {"town", "location", "area", "destination"},
+    "go": {"towns", "destinations","service", "transport", "reach", "transportation", "locations"},
 }
 
 TOKEN_RE = re.compile(r"[a-z0-9]+(?:['’-][a-z0-9]+)?", re.IGNORECASE)

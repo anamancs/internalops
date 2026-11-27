@@ -493,28 +493,88 @@
             border-radius: 0 8px 8px 0;
         }
 
-        .chat-bubble.bot table {
+        /* TABLE RESPONSE FORMATTING */
+
+        .chat-bubble.bot .table-scroll {
             width: 100%;
-            border-collapse: collapse;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
             margin: 12px 0;
+            border: 1px solid var(--acs-line);
+            border-radius: 8px;
+        }
+
+        .chat-bubble.bot table {
+            width: max-content;
+            min-width: 100%;
+            max-width: none;
+            border-collapse: collapse;
+            table-layout: auto;
+            margin: 0;
             font-size: 12px;
         }
 
         .chat-bubble.bot th {
             background: var(--acs-navy);
             color: #fff;
-            padding: 9px;
+            padding: 11px 13px;
             text-align: left;
+            white-space: nowrap;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.12);
         }
 
         .chat-bubble.bot td {
-            padding: 9px;
+            padding: 11px 13px;
             border-bottom: 1px solid var(--acs-line);
+            min-width: 105px;
+            max-width: 260px;
+            vertical-align: top;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+            line-height: 1.6;
         }
 
         .chat-bubble.bot tr:nth-child(even) {
             background: #f6f8fb;
         }
+
+        .chat-bubble.bot tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Mobile table optimization */
+
+        @media (max-width: 768px) {
+
+            .chat-bubble.bot .table-scroll {
+                width: 100%;
+                max-width: 100%;
+                margin: 12px 0;
+            }
+
+            .chat-bubble.bot table {
+                font-size: 12px;
+                min-width: max-content;
+            }
+
+            .chat-bubble.bot th,
+            .chat-bubble.bot td {
+                padding: 10px 12px;
+                min-width: 115px;
+                max-width: 220px;
+            }
+
+            .chat-bubble {
+                max-width: 100%;
+                overflow-wrap: anywhere;
+            }
+        }
+
 
         .chat-bubble.bot hr {
             border: 0;
@@ -1064,9 +1124,25 @@
                 typeof DOMPurify !== 'undefined'
             ) {
 
+                //const formattedHTML = marked.parse(message);
+
+                //bubble.innerHTML = DOMPurify.sanitize(formattedHTML);
+
                 const formattedHTML = marked.parse(message);
 
                 bubble.innerHTML = DOMPurify.sanitize(formattedHTML);
+
+                // Make individual AI tables horizontally scrollable
+                bubble.querySelectorAll('table').forEach(table => {
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'table-scroll';
+
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+
+                });
+
 
             } else {
 
